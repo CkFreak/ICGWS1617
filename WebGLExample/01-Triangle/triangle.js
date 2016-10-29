@@ -2,26 +2,49 @@ var gl;
 
 window.onload = function init()
 {
-	// Get canvas and setup WebGL
+	// Get canvas and setup WebGL    
+    var array2 =  new Float32Array(drawPacman(8,25,10));
+    var colors = new Float32Array(drawColor(array2.length / 2));
+    
+    console.log(array2.length)
+    console.log(array2)
+    console.log(colors.length)
+    console.log(colors)
+    
 
 	var canvas = document.getElementById("gl-canvas");
 	gl = WebGLUtils.setupWebGL(canvas);
 	if (!gl) { alert("WebGL isn't available"); }
 
 	// Specify position and color of the vertices
-
-	var vertices = new Float32Array([	0, 0,
-									-1, 1,
-								1, 1,
-							1, -1,
-						-1, -1,
-					-1, 1]);
-	var colors = new Float32Array([ 1, 0, 0, 1,
-									1, 1, 0, 1,
-									0, 0, 1, 1,
-								0, 1, 1, 1,
-							1, 1, 0, 0,
-						1, 1, 0, 1]);
+    function toRadians(angle)
+    {
+        return angle * (180 * Math.PI);
+    }
+    function drawPacman(vertices, angle, radius)
+    {
+        var rad = 0.1* radius;
+        var aK = -1 * (angle / 2);
+        var winkelEck = (360 / vertices);
+        var array =[0,0];
+        for (var i = 0; i< (vertices -1 ); i++)
+            {
+                array.push(rad * (Math.cos((winkelEck * i) + aK))); 
+                array.push(rad * (Math.sin((winkelEck * i) + aK)));
+            }
+        
+        return array;
+    }
+    
+    function drawColor(vertices)
+    {
+        var colors =[1,1,0,1];
+        for (var i = 0; i < (vertices -1); i++)
+            {
+                colors.push(1,1,0,1);
+            }
+        return colors;
+    }
 
 	// Configure viewport
 
@@ -37,7 +60,7 @@ window.onload = function init()
 
 	var posVBO = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, posVBO);
-	gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+	gl.bufferData(gl.ARRAY_BUFFER, array2, gl.STATIC_DRAW);
 
 	var vPosition = gl.getAttribLocation(program, "vPosition");
 	gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
@@ -53,11 +76,11 @@ window.onload = function init()
 	gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vColor);
 
-	render();
+	render((array2.length / 2));
 };
 
-function render()
+function render(lengths)
 {
 	gl.clear(gl.COLOR_BUFFER_BIT);
-	gl.drawArrays(gl.TRIANGLE_FAN, 0, 6);
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, lengths);
 }
