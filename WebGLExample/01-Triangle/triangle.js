@@ -3,7 +3,7 @@ var gl;
 window.onload = function init()
 {
 	// Get canvas and setup WebGL    
-    var array2 =  new Float32Array(drawPacman(8,25,10));
+    var array2 =  new Float32Array(drawPacman(8,90,10));
     var colors = new Float32Array(drawColor(array2.length / 2));
     
     console.log(array2.length)
@@ -11,7 +11,6 @@ window.onload = function init()
     console.log(colors.length)
     console.log(colors)
     
-
 	var canvas = document.getElementById("gl-canvas");
 	gl = WebGLUtils.setupWebGL(canvas);
 	if (!gl) { alert("WebGL isn't available"); }
@@ -19,27 +18,45 @@ window.onload = function init()
 	// Specify position and color of the vertices
     function toRadians(angle)
     {
-        return angle * (180 * Math.PI);
+        return (angle * Math.PI / 180);
     }
     function drawPacman(vertices, angle, radius)
     {
         var rad = 0.1* radius;
-        var aK = -1 * (angle / 2);
-        var winkelEck = (360 / vertices);
-        var array =[0,0];
-        for (var i = 0; i< (vertices -1 ); i++)
+        var deletevertices = toRadians(angle * 2.1);
+        var winkelEck = toRadians(360 /vertices );
+        if (vertices >= 26)
             {
-                array.push(rad * (Math.cos((winkelEck * i) + aK))); 
-                array.push(rad * (Math.sin((winkelEck * i) + aK)));
+                var anfangsK = (winkelEck / 2) +  toRadians(angle /2);
+            }
+        else 
+            {
+                var anfangsK = (winkelEck /2);
             }
         
+        var array =[0,0];
+        var entfTri = 0;
+        var hilfsvar = toRadians(angle);
+        while (hilfsvar >= winkelEck)
+            {
+                hilfsvar = hilfsvar - winkelEck;
+                entfTri++;
+            }
+        for (var i = 0; i<= (vertices - entfTri); i++)
+            {
+                array.push(rad * (Math.cos(winkelEck *i + anfangsK ))); 
+                array.push(rad * (Math.sin(winkelEck * i + anfangsK)));
+            }
+        
+        
+        console.log(entfTri)
         return array;
     }
     
     function drawColor(vertices)
     {
-        var colors =[1,1,0,1];
-        for (var i = 0; i < (vertices -1); i++)
+        var colors =[];
+        for (var i = 0; i < (vertices); i++)
             {
                 colors.push(1,1,0,1);
             }
