@@ -1,19 +1,24 @@
 var gl;
+var scale;
 
 window.onload = function init()
 {
 	// Get canvas and setup WebGL
-	
+
 	var canvas = document.getElementById("gl-canvas");
 	gl = WebGLUtils.setupWebGL(canvas);
+	scale = gl.getUniformLocation(program, "scale");
+
+	var value = gl.uniform1f(scale, 2);
+
 	if (!gl) { alert("WebGL isn't available"); }
 
 	// Specify position and color of the vertices
-	
-	var vertices = new Float32Array([	-1, -1, 
-										0, 1, 
+
+	var vertices = new Float32Array([	-1, -1,
+										0, 1,
 										1, -1]);
-	var colors = new Float32Array([ 1, 0, 0, 1, 
+	var colors = new Float32Array([ 1, 0, 0, 1,
 									1, 1, 0, 1,
 									0, 0, 1, 1,]);
 
@@ -26,7 +31,7 @@ window.onload = function init()
 
 	var program = initShaders(gl, "vertex-shader", "fragment-shader");
 	gl.useProgram(program);
-	
+
 	// Load positions into the GPU and associate shader variables
 
 	var posVBO = gl.createBuffer();
@@ -38,11 +43,11 @@ window.onload = function init()
 	gl.enableVertexAttribArray(vPosition);
 
 	// Load colors into the GPU and associate shader variables
-	
+
 	var colorVBO = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, colorVBO);
 	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-	
+
 	var vColor = gl.getAttribLocation(program, "vColor");
 	gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vColor);
@@ -50,8 +55,21 @@ window.onload = function init()
 	render();
 };
 
+function scaleUp(vertices, factor)
+{
+	for (var i = 0; i < vertices.length; i++)
+	{
+		var xPosition = vertices[i];
+		var yPosition = vertices[i + 1];
+
+		vertices[i] = xPosition * factor;
+		vertices[i+1] = yPosition * factor;
+	}
+	return vertices;
+}
+
 function render()
 {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	gl.drawArrays(gl.TRIANGLES, 0, 3);
-}
+};
