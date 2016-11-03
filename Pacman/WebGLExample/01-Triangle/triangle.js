@@ -1,4 +1,5 @@
 var gl;
+var generateCustomPacman;
 
 window.onload = function init()
 {
@@ -96,19 +97,20 @@ window.onload = function init()
 	gl.enableVertexAttribArray(vColor);
 
 	render((array2.length / 2));
+
+  generateCustomPacman = function ()
+  {
+    var vertices = document.getElementById("numberOfVertices").value;
+    var angle = document.getElementById("angle").value;
+    var radius = document.getElementById("radius").value;
+
+    drawPacman(vertices, angle, radius);
+  };
+
 };
 
 function render(lengths)
 {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	gl.drawArrays(gl.TRIANGLE_FAN, 0, lengths);
-}
-
-function generateCustomPacman()
-{
-  var vertices = document.getElementById("numberOfVertices").value;
-  var angle = document.getElementById("angle").value;
-  var radius = document.getElementById("radius").value;
-
-  drawPacman(vertices, angle, radius);
 }
