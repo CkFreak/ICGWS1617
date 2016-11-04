@@ -4,8 +4,6 @@ var generateCustomPacman;
 window.onload = function init()
 {
 	// Get canvas and setup WebGL
-<<<<<<< HEAD
-=======
     var array2 =  new Float32Array(drawPacman(502,60,10));
     var colors = new Float32Array(drawColor(array2.length / 2));
 
@@ -13,7 +11,6 @@ window.onload = function init()
     console.log(array2)
     console.log(colors.length)
     console.log(colors)
->>>>>>> timbo
 
 	var canvas = document.getElementById("gl-canvas");
 	gl = WebGLUtils.setupWebGL(canvas);
@@ -126,9 +123,5 @@ window.onload = function init()
 function render(vertices)
 {
 	gl.clear(gl.COLOR_BUFFER_BIT);
-<<<<<<< HEAD
 	gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 2);
-=======
-	gl.drawArrays(gl.TRIANGLE_FAN, 0, lengths);
->>>>>>> timbo
 }
