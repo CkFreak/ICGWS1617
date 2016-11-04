@@ -4,7 +4,7 @@ var generateCustomPacman;
 window.onload = function init()
 {
 	// Get canvas and setup WebGL
-    var array2 =  new Float32Array(drawPacman(8,90,10));
+    var array2 =  new Float32Array(drawPacman(502,60,10));
     var colors = new Float32Array(drawColor(array2.length / 2));
 
     console.log(array2.length)
@@ -104,7 +104,7 @@ window.onload = function init()
     var angle = document.getElementById("angle").value;
     var radius = document.getElementById("radius").value;
 
-    drawPacman(vertices, angle, radius);
+    render(drawPacman(vertices, angle, radius).length/2);
   };
 
 };
