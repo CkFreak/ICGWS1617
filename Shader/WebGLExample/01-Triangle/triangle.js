@@ -1,11 +1,20 @@
 var gl;
+<<<<<<< HEAD
 //hallo
+=======
+var scale;
+
+>>>>>>> timbo
 window.onload = function init()
 {
 	// Get canvas and setup WebGL
 
 	var canvas = document.getElementById("gl-canvas");
 	gl = WebGLUtils.setupWebGL(canvas);
+	scale = gl.getUniformLocation(program, "scale");
+
+	var value = gl.uniform1f(scale, 2);
+
 	if (!gl) { alert("WebGL isn't available"); }
 
 	// Specify position and color of the vertices
@@ -50,8 +59,21 @@ window.onload = function init()
 	render();
 };
 
+function scaleUp(vertices, factor)
+{
+	for (var i = 0; i < vertices.length; i++)
+	{
+		var xPosition = vertices[i];
+		var yPosition = vertices[i + 1];
+
+		vertices[i] = xPosition * factor;
+		vertices[i+1] = yPosition * factor;
+	}
+	return vertices;
+}
+
 function render()
 {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	gl.drawArrays(gl.TRIANGLES, 0, 3);
-}
+};

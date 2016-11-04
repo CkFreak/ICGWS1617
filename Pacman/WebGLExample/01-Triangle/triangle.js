@@ -1,8 +1,19 @@
 var gl;
+var generateCustomPacman;
 
 window.onload = function init()
 {
 	// Get canvas and setup WebGL
+<<<<<<< HEAD
+=======
+    var array2 =  new Float32Array(drawPacman(502,60,10));
+    var colors = new Float32Array(drawColor(array2.length / 2));
+
+    console.log(array2.length)
+    console.log(array2)
+    console.log(colors.length)
+    console.log(colors)
+>>>>>>> timbo
 
 	var canvas = document.getElementById("gl-canvas");
 	gl = WebGLUtils.setupWebGL(canvas);
@@ -99,12 +110,25 @@ window.onload = function init()
 	gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vColor);
 
-	render(vertices);
+	render((array2.length / 2));
+
+  generateCustomPacman = function ()
+  {
+    var vertices = document.getElementById("numberOfVertices").value;
+    var angle = document.getElementById("angle").value;
+    var radius = document.getElementById("radius").value;
+
+    render(drawPacman(vertices, angle, radius).length/2);
+  };
 };
 
 //Da sich je nach Angaben die länge des Arrays ändert wird dies mit übergeben
 function render(vertices)
 {
 	gl.clear(gl.COLOR_BUFFER_BIT);
+<<<<<<< HEAD
 	gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 2);
+=======
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, lengths);
+>>>>>>> timbo
 }
