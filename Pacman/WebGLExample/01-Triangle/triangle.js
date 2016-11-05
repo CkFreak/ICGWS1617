@@ -39,14 +39,14 @@ window.onload = function init(vertices, angle, radius)
                 {
                     var anfangsK = angleR / 2;
                 }
-                
+
             }
         else
             {
                 var anfangsK = angleR / 2;
             }
 
-        
+
         while (angleR >= winkelEck)
             {
                 angleR = angleR - winkelEck;
