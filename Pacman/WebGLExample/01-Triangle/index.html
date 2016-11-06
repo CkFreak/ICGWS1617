@@ -7,12 +7,16 @@
 		<script id="vertex-shader" type="x-shader/x-vertex">
 			attribute vec4 vPosition;
 			attribute vec4 vColor;
-
 			varying vec4 fColor;
+			//Translationsmatrix
+			uniform mat4 translation;
+			//Rotationsmatrix
+			uniform mat4 rotation;
+
 			void main()
 			{
 				fColor = vColor;
-				gl_Position = vPosition;
+				gl_Position = translation * (rotation * vPosition);
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
@@ -35,7 +39,7 @@
 	<body>
 		<h1>Pacman</h1>
 
-		<canvas id="gl-canvas" width="512" height="512">
+		<canvas id="gl-canvas" width="1000" height="1000">
 			If you see this, your browser doesn't support WebGL.
 		</canvas>
 	</body>

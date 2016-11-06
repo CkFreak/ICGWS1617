@@ -13,15 +13,19 @@ window.onload = function init()
 	var vertices;
 	// Array mit den Farben
 	var colors;
+	// Rotationsmatrix
+	var rotation;
+	// Translationsmatrix
+	var translation;
 
 	/*Diese Funktion nimmt einen Radius zwischen 0 und 1 eine Anzahl an vertices und einen Winkel für den Mund
-	  Das Array vertices und colors wird mit den passenden Werten gefüllt
-		Aus Gründen wie der Kreis aufgebaut wird wird erst bei etwa 150 Dreiecken der Mund in der angegebenen Größe angezeigt
+	Das Array vertices und colors wird mit den passenden Werten gefüllt
+	Aus Gründen wie der Kreis aufgebaut wird wird erst bei etwa 150 Dreiecken der Mund in der angegebenen Größe angezeigt
 	*/
 	function drawPacman(r, nOV, mAngle)
 	{
 		//Hier wird aus der nOV und dem mAngle der angle berechnet
-    //Der angle repräsentiert wie viele Dreiecke aus dem Kreis entfehrnt werden um den Mund freizulegen
+		//Der angle repräsentiert wie viele Dreiecke aus dem Kreis entfehrnt werden um den Mund freizulegen
 		var anglePT = (360 / (nOV - 2)); //Der Winkel den jedes Dreiecke hat
 		var angle = (mAngle / anglePT).toFixed(0); //Anzahl der zu entfehrnenden Dreiecke
 		if(angle % 2 != 0){ //Wenn die Anzahl der zu enfernenden Dreiecke nicht grade ist wird sie grade gemacht
@@ -38,7 +42,7 @@ window.onload = function init()
 		//so werden ober und unterhalb von ihr die Koordinaten für die Dreiecke die den Mund aussparen gleichmäßig ausgelassen
 		for (var i = 1; i < nOV; i++) {
 			if(i > angle / 2 && i < verticesx.length + (angle/2)){
-				verticesx[i - (angle / 2)] = r * Math.cos(i * 2 * Math.PI / (nOV - 2)); //In Bogenmaß + (anglePT / 2)
+				verticesx[i - (angle / 2)] = r * Math.cos(i * 2 * Math.PI / (nOV - 2));
 				verticesy[i - (angle / 2)] = r * Math.sin(i * 2 * Math.PI / (nOV - 2));
 			}
 		}
@@ -67,44 +71,74 @@ window.onload = function init()
 		console.log("Anzahl der zu entfehrnenden Dreiecke: " + angle);
 	}
 
-	drawPacman(1, 10, 30);
+	//Erstellt die Rotationsmatrix mit dem angegebenen Winkel
+	function setRotation(angle){
+		rotation = [Math.cos(degToRad(angle)), Math.sin(degToRad(angle)), 0.0, 0.0,
+			Math.sin(-degToRad(angle)), Math.cos(degToRad(angle)), 0.0, 0.0,
+			0.0,0.0,1.0,0.0,
+			0.0,0.0,0.0,1.0];
+			console.log("Angegebene Rotation: " + angle + "°");
+		}
 
-	// Configure viewport
+	function degToRad(deg){
+			return (deg * Math.PI)/180;
+		}
 
-	gl.viewport(0,0,canvas.width,canvas.height);
-	gl.clearColor(1.0,1.0,1.0,1.0);
+	//Estellt die Translationsmatrix mit den angegebenen Koordinaten
+	function setTranslation(x, y){
+			translation = [1.0, 0.0,0.0,0.0,
+				0.0,1.0,0.0,0.0,
+				0.0,0.0,1.0,0.0,
+				x, y,0.0,1.0];
+				console.log("Angegebene Translation: x=" + x + ", y=" + y);
+		}
 
-	// Init shader program and bind it
+		drawPacman(0.1, 152, 100);
+		setRotation(180);
+		setTranslation(0.9, -0.9);
 
-	var program = initShaders(gl, "vertex-shader", "fragment-shader");
-	gl.useProgram(program);
+			// Configure viewport
 
-	// Load positions into the GPU and associate shader variables
+			gl.viewport(0,0,canvas.width,canvas.height);
+			gl.clearColor(1.0,1.0,1.0,1.0);
 
-	var posVBO = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, posVBO);
-	gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+			// Init shader program and bind it
 
-	var vPosition = gl.getAttribLocation(program, "vPosition");
-	gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(vPosition);
+			var program = initShaders(gl, "vertex-shader", "fragment-shader");
+			gl.useProgram(program);
 
-	// Load colors into the GPU and associate shader variables
+			// Load positions into the GPU and associate shader variables
 
-	var colorVBO = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorVBO);
-	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+			var posVBO = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, posVBO);
+			gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-	var vColor = gl.getAttribLocation(program, "vColor");
-	gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(vColor);
+			var vPosition = gl.getAttribLocation(program, "vPosition");
+			gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
+			gl.enableVertexAttribArray(vPosition);
 
-	render(vertices);
-};
+			var rotationLoc = gl.getUniformLocation(program, "rotation");
+			gl.uniformMatrix4fv(rotationLoc, false, rotation);
 
-//Da sich je nach Angaben die länge des Arrays ändert wird dies mit übergeben
-function render(vertices)
-{
-	gl.clear(gl.COLOR_BUFFER_BIT);
-	gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 2);
-}
+			var translationLoc = gl.getUniformLocation(program, "translation");
+			gl.uniformMatrix4fv(translationLoc, false, translation);
+
+			// Load colors into the GPU and associate shader variables
+
+			var colorVBO = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, colorVBO);
+			gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+
+			var vColor = gl.getAttribLocation(program, "vColor");
+			gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
+			gl.enableVertexAttribArray(vColor);
+
+			render(vertices);
+		};
+
+		//Da sich je nach Angaben die länge des Arrays ändert wird dies mit übergeben
+		function render(vertices)
+		{
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 2);
+		}
