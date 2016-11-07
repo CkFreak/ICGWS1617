@@ -11,7 +11,7 @@ window.onload = function init()
 
 	// Specify position and color of the vertices
 
-	var vertices = new Float32Array(getVertices(360, 90, 5));
+	var vertices = new Float32Array(getVertices(5, 360, 75));
 	var colors = new Float32Array(getColors(vertices.length / 2));
 
 	function toRadians(angle){
@@ -22,17 +22,17 @@ window.onload = function init()
 	*	Gibt das Vertices-Array zurück und nimmt dafür die
 	* Anzahl der Vertices, den Winkel und die Größe des Pacmans entgegen.
 	*/
-	function getVertices(numberOfVertices, mouthAngle, size){
+	function getVertices(radius, numberOfVertices, mouthAngle){
 		var verticesArray = [0,0];
 
 		var vangle = toRadians(360 / numberOfVertices);
 		var mouth = toRadians(mouthAngle) / vangle;
 
-		var radius = (size % 10) / 10;
+		var rad = (radius % 10) / 10;
 
 		for(var i = 0; i <= numberOfVertices - mouth; i++){
-			verticesArray.push(radius * (Math.cos((i + mouth/2) * vangle)));
-			verticesArray.push(radius * (Math.sin((i + mouth/2) * vangle)));
+			verticesArray.push(rad * (Math.cos((i + mouth/2) * vangle)));
+			verticesArray.push(rad * (Math.sin((i + mouth/2) * vangle)));
 		}
 		return verticesArray;
 
