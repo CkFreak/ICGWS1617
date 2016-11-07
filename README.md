@@ -5,12 +5,12 @@ Hier kommt noch wichtiger stuff hin.
 ## Guckt mal, eine ToDo-Liste!
 
 ### Aufgabe 1
-[X] - Pacman zeichnen
-[X] - Pacman über Funktion zu zeichnen
-[X] - Funktion kann Parameter annehmen
+- [X] Pacman zeichnen
+- [X] Pacman über Funktion zu zeichnen
+- [X] Funktion kann Parameter annehmen
 
 ### Aufgabe 2
-[ ] - Rotation
-[ ] - Translation
+- [ ] Rotation
+- [ ] Translation
 
 ### Aufgabe 3
