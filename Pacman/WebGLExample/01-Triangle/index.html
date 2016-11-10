@@ -12,11 +12,12 @@
 			uniform mat4 translation;
 			//Rotationsmatrix
 			uniform mat4 rotation;
+//vec4 test = vec4(2,2,0,0);
 
 			void main()
 			{
 				fColor = vColor;
-				gl_Position = translation * (rotation * vPosition);
+				gl_Position = translation	*(rotation * vPosition);//*test;
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">

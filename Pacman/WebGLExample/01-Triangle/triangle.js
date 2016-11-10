@@ -1,5 +1,5 @@
 var gl;
-
+var vertices;
 window.onload = function init()
 {
 	// Get canvas and setup WebGL
@@ -10,7 +10,7 @@ window.onload = function init()
 
 	// Specify position and color of the vertices
 	// Array mit den Koordinaten
-	var vertices;
+	//var vertices;
 	// Array mit den Farben
 	var colors;
 	// Rotationsmatrix
@@ -77,11 +77,11 @@ window.onload = function init()
 			Math.sin(-degToRad(angle)), Math.cos(degToRad(angle)), 0.0, 0.0,
 			0.0,0.0,1.0,0.0,
 			0.0,0.0,0.0,1.0];
-			console.log("Angegebene Rotation: " + angle + "°");
+		//	console.log("Angegebene Rotation: " + angle + "°");
 		}
 
 	function degToRad(deg){
-			return (deg * Math.PI)/180;
+			return (deg * Math.PI)/1800
 		}
 
 	//Estellt die Translationsmatrix mit den angegebenen Koordinaten
@@ -94,8 +94,8 @@ window.onload = function init()
 		}
 
 		drawPacman(0.1, 152, 100);
-		setRotation(180);
-		setTranslation(0.9, -0.9);
+		setRotation(0);
+		setTranslation(0, 0);
 
 			// Configure viewport
 
@@ -117,6 +117,27 @@ window.onload = function init()
 			gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
 			gl.enableVertexAttribArray(vPosition);
 
+//////////////////////////////////////////////////////////////
+var rC = 0;
+			document.onkeydown = function(e){
+				var key = e.keyCode;
+				if(key == 39)
+				{
+					setRotation(rC-= 10);
+				}
+				else if (key == 37) {
+				  setRotation(rC+= 10);
+				}
+				else if (key == 38) {
+					setTranslation
+				}
+				var rotationLoc = gl.getUniformLocation(program, "rotation");
+				gl.uniformMatrix4fv(rotationLoc, false, rotation);
+			}
+//https://www.youtube.com/watch?v=U22lDEYGg0w
+////////////////////////////////////////////////////////////////////
+
+
 			var rotationLoc = gl.getUniformLocation(program, "rotation");
 			gl.uniformMatrix4fv(rotationLoc, false, rotation);
 
@@ -133,12 +154,15 @@ window.onload = function init()
 			gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
 			gl.enableVertexAttribArray(vColor);
 
-			render(vertices);
+			render();
 		};
 
 		//Da sich je nach Angaben die länge des Arrays ändert wird dies mit übergeben
-		function render(vertices)
+		function render()
 		{
+			var i = 0;
+			console.log(i++);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 2);
+			requestAnimFrame(render);
 		}
