@@ -3,22 +3,20 @@ var gl;
 window.onload = function init(vertices, angle, radius, translationx, translationy, rotation)
 {
 	// Get canvas and setup WebGL
-    var array2 =  new Float32Array(drawPacman(vertices, angle, radius));
-    var colors = new Float32Array(drawColor(array2.length / 2));
+    var array2 =  new Float32Array(getVertices(vertices, angle, radius));
+    var colors = new Float32Array(getColors(array2.length / 2));
     
     var translationMat = new Float32Array(  [1, 0, 0, 0,
                                             0, 1 , 0,0,
                                             0,0,1, 0,
                                             translationx, translationy, 0,1])
+    
     var rotationMat = new Float32Array([Math.cos(toRadians(rotation)), Math.sin(toRadians(rotation)), 0, 0,
                                                 -1 * Math.sin(toRadians(rotation)), Math.cos(toRadians(rotation)), 0, 0,
                                                 0, 0, 1, 0,
                                                 0,0,0,1])
     
-
-    console.log(array2.length)
     console.log(array2)
-    console.log(colors.length)
     console.log(colors)
 
 	var canvas = document.getElementById("gl-canvas");
@@ -32,48 +30,24 @@ window.onload = function init(vertices, angle, radius, translationx, translation
     }
 
 
-    function drawPacman(vertices, angle, radius)
+    function getVertices(vertices, angle, radius)
     {
         var rad = 0.1* radius;
         var winkelEck = toRadians(360 /vertices );
         var array =[0,0];
-        var entfTri = 0;
-        var angleR = toRadians(angle);
-        if (vertices < 16)
-            {
-                if (angle <= 45)
-                    {
-                        var anfangsK = winkelEck / 2;
-                    }
-                else
-                {
-                    var anfangsK = angleR / 2;
-                }
-                
-            }
-        else
-            {
-                var anfangsK = angleR / 2;
-            }
-
+        var newangle = toRadians(angle) / winkelEck;
         
-        while (angleR >= winkelEck)
+        //array mit Koordinaten befüllen
+        for (var i = 0; i<= (vertices - newangle); i++)
             {
-                angleR = angleR - winkelEck;
-                entfTri++;
+                array.push(rad * (Math.cos((i + newangle / 2) * winkelEck)));
+                array.push(rad * (Math.sin((i + newangle / 2) * winkelEck)));
             }
-        for (var i = 0; i<= (vertices - entfTri); i++)
-            {
-                array.push(rad * (Math.cos(winkelEck *i + anfangsK )));
-                array.push(rad * (Math.sin(winkelEck * i + anfangsK)));
-            }
-
-
-        console.log(entfTri)
         return array;
     }
 
-    function drawColor(vertices)
+    // color array befüllen
+    function getColors(vertices)
     {
         var colors =[];
         for (var i = 0; i < (vertices); i++)
