@@ -122,6 +122,11 @@ function render(lengths)
 	gl.drawArrays(gl.TRIANGLE_FAN, 0, lengths);
 }
 
+document.onkeydown = function(e){
+  var key = e.keyCode;
+  console.log(key);
+};
+
 /*
 var gl;
 
