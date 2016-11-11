@@ -1,12 +1,14 @@
 var gl;
 
-window.onload = function init(vertices, angle, radius, translationx, translationy, rotation)
+//window.onload = function init(vertices, angle, radius, translationx, translationy, rotation)
+window.onload = function init()
+
 {
 	// Get canvas and setup WebGL
     var array2 =  new Float32Array(getVertices(vertices, angle, radius));
     var colors = new Float32Array(getColors(array2.length / 2));
     
-    var translationMat = new Float32Array(  [1, 0, 0, 0,
+  /*  var translationMat = new Float32Array(  [1, 0, 0, 0,
                                             0, 1 , 0,0,
                                             0,0,1, 0,
                                             translationx, translationy, 0,1])
@@ -15,6 +17,31 @@ window.onload = function init(vertices, angle, radius, translationx, translation
                                                 -1 * Math.sin(toRadians(rotation)), Math.cos(toRadians(rotation)), 0, 0,
                                                 0, 0, 1, 0,
                                                 0,0,0,1])
+*/
+    var translationMat = setTranslation(translationx, translationy);
+    var rotationMat = setRotation(angle);
+
+    /**
+    * Gibt die Rotationsmatrix für den Winkel "angle" zurück.
+    */
+    function setRotation(angle){
+        return [Math.cos(toRadians(angle)), Math.sin(toRadians(angle)), 0.0, 0.0,
+            Math.sin(-toRadians(angle)), Math.cos(toRadians(angle)), 0.0, 0.0,
+            0.0,0.0,1.0,0.0,
+            0.0,0.0,0.0,1.0];
+        //  console.log("Angegebene Rotation: " + angle + "°");
+        }
+
+    /**
+    * Gibt die Translationsmatrix für die Koordinaten x y zurück.
+    */
+    function setTranslation(x, y){
+            return [1.0, 0.0,0.0,0.0,
+                            0.0,1.0,0.0,0.0,
+                            0.0,0.0,1.0,0.0,
+                            x, y,0.0,1.0];
+                //console.log("Angegebene Translation: x=" + x + ", y=" + y);
+        }
     
     console.log(array2)
     console.log(colors)
@@ -95,7 +122,7 @@ window.onload = function init(vertices, angle, radius, translationx, translation
 
 	render(array2.length / 2);
 
-  generateCustomPacman = function ()
+/*  generateCustomPacman = function ()
   {
     var vertices = document.getElementById("numberOfVertices").value;
     var angle = document.getElementById("angle").value;
@@ -105,7 +132,7 @@ window.onload = function init(vertices, angle, radius, translationx, translation
     var rotation = document.getElementById("rotation").value;
 
     init(vertices, angle, radius, translationx, translationy, rotation);
-  };
+  };*/
 
 };
 
