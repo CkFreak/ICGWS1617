@@ -14,7 +14,7 @@
 			void main()
 			{
 				fColor = vColor;
-				gl_Position = transLoc * rotaLoc * vPosition;
+				gl_Position = transLoc * (rotaLoc * vPosition);
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
@@ -51,15 +51,6 @@
 			Radius<br>
 			<input type="text" name="radius" id="radius">
 			<br>
-            Translation x Achse<br>
-            <input type="text" name="translationx" id="translationx">
-            <br>
-            Translation y Achse<br>
-            <input type = "text" name="translationy" id="translationy">
-            <br>
-            Rotation<br>
-            <input type="text" name="rotation" id="rotation">
-            <br>
 		</form>
 		<button id="generate" onclick="generateCustomPacman()">Generate</button>
 
