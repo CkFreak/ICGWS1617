@@ -2,7 +2,8 @@ var gl;
 
 //damit man vertices.length / 2 in render benutzen kann.
 var vertices =[0,0];
-
+//Ermöglicht Startpacman
+var custom = false;
 window.onload = function init(noV, angle, radius)
 {
     // Get canvas and setup WebGL
@@ -15,6 +16,7 @@ window.onload = function init(noV, angle, radius)
   var colors = [];
   var rotation;
   var translation;
+
 
   // Funktion um Winkel in Grad zu Radianten umzuwandeln
   function toRadians(angle)
@@ -80,11 +82,20 @@ window.onload = function init(noV, angle, radius)
   	  x -= xx;
   	  y -= yy;
     }
-
-
 	}
 
-  getVertices(noV, angle, radius);
+  //Setzt einen Starpacman, sonst wird der Custompacman benutzt.
+  if(!custom){
+    abstand = 1/10;
+    getVertices(150, 90, 1);
+    render();
+    custom = true;
+  }
+  else{
+    getVertices(noV, angle, radius);
+  }
+
+  
   setTranslation(0,0);
   setRotation(0);
 
@@ -94,7 +105,7 @@ window.onload = function init(noV, angle, radius)
 	// Configure viewport
 
 	gl.viewport(0,0,canvas.width,canvas.height);
-	gl.clearColor(1.0,1.0,1.0,1.0);
+	gl.clearColor(0.0,0.0,0.0,1.0);
 
 	// Init shader program and bind it
 
@@ -115,7 +126,6 @@ window.onload = function init(noV, angle, radius)
   document.onkeydown = function(e)
   {
 	   var key = e.keyCode;
-     //console.log(key)
 
 		if(key == 39)
 		{
@@ -129,7 +139,6 @@ window.onload = function init(noV, angle, radius)
     {
 	    setMoveVec(rC);
 		}
-    //console.log(rC)
 
 		var rotationLoc = gl.getUniformLocation(program, "rotaLoc");
 		gl.uniformMatrix4fv(rotationLoc, false, rotation);
@@ -158,6 +167,7 @@ window.onload = function init(noV, angle, radius)
   // erzeugt einen Pacman über eine Eingabe und Button.
   generateCustomPacman = function ()
   {
+
     var vertices2 = document.getElementById("numberOfVertices").value;
     var angle = document.getElementById("angle").value;
     var radius = document.getElementById("radius").value;
@@ -165,13 +175,15 @@ window.onload = function init(noV, angle, radius)
     vertices = [0,0];
     colors = [];
     init(vertices2, angle, radius);
-    render();
   }
+
 };
 
 function render()
 {
+  //Verhindert das drawArrays aufgerufen wird, während vertices noch nicht befüllt ist.
+  if(custom){
 	gl.clear(gl.COLOR_BUFFER_BIT);
-	gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 2);
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 2);}
   requestAnimFrame(render);
 }
