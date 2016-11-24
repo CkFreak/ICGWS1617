@@ -209,6 +209,42 @@ window.onload = function init()
 	projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
 	gl.uniformMatrix4fv(projectionMatrixLoc, false, projectionMatrix);
     
+    document.onkeydown = function (e)
+    {
+        var key = e.keyCode;
+        switch (key)
+        {
+            case 87:
+                eye[2]= eye[2] - 0.2;
+                break;
+                
+            case 83:
+                eye[2] = eye[2] + 0.2;
+                break;
+            case 65:
+                eye[0] = eye[0] - 0.2;
+                break;
+                
+            case 68:
+                eye[0] = eye[0] + 0.2;
+                break;
+        }
+    }
+    
+    document.onmousemove = function (e)
+    {
+        
+        if (e.clientX > canvas.width / 2)
+            {
+                eye[0] = eye[0] + 0.2;
+            }
+        else if (e.clientY < canvas.width / 2)
+            {
+                eye[0] = eye[0] - 0.2;
+            }
+    }
+        
+    
 	render();
 };
 
