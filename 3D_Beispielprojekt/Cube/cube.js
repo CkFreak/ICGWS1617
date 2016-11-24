@@ -1,5 +1,8 @@
 var gl;
 var canvas;
+var eye;
+var target;
+var up;
 
 var positions;
 var colors;
@@ -8,7 +11,10 @@ var positionBuffer;
 var colorBuffer;
 
 var modelMatrixLoc;
-var modelMatrix;
+var modelMatrixLoc2;
+var boden;
+var cube;
+var cube2;
 
 var viewMatrixLoc;
 var viewMatrix;
@@ -163,19 +169,31 @@ window.onload = function init()
 	
 	// Set model matrix
 	
-	modelMatrix = new Float32Array([1, 0, 0, 0,
+	cube = new Float32Array([1, 0, 0, 0,
 									0, 1, 0, 0,
 									0, 0, 1, 0,
-									0, 0, 0, 1]);
+									0.6, 0, 0, 1]);
+    
+    cube2 = new Float32Array([1, 0, 0, 0,
+									0, 1, 0, 0,
+									0, 0, 1, 0,
+									-0.6, 0, 0, 1]);
+    
+    boden = new Float32Array([1, 0, 0, 0,
+									0, 1, 0, 0,
+									0, 0, 1, 0,
+									0, -1, 0, 1]);
+    
+    boden = mat4.scale(boden, boden, vec3.fromValues(3.0, 0.01, 3.0));
 	
 	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
-	gl.uniformMatrix4fv(modelMatrixLoc, false, modelMatrix);
+	gl.uniformMatrix4fv(modelMatrixLoc, false, cube);
 
     // Set view matrix
 
-	var eye = vec3.fromValues(0.0, 0.0, 2.0);
-	var target = vec3.fromValues(0.0, 0.0, 0.0);
-	var up = vec3.fromValues(0.0, 1.0, 0.0);
+	eye = vec3.fromValues(0.0, 0.0, 5.0);
+	target = vec3.fromValues(0.0, 0.0, 0.0);
+	up = vec3.fromValues(0.0, 1.0, 0.0);
 
 	viewMatrix = mat4.create();
 	mat4.lookAt(viewMatrix, eye, target, up);
@@ -197,6 +215,18 @@ window.onload = function init()
 function render()
 {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    mat4.lookAt(viewMatrix, eye, target, up);
+    
+    gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
+    gl.uniformMatrix4fv(modelMatrixLoc, false, cube);
+    
 	gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
+    gl.uniformMatrix4fv(modelMatrixLoc, false, cube2);
+    
+    gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
+    
+    gl.uniformMatrix4fv(modelMatrixLoc, false, boden);
+    gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
+    
 	requestAnimFrame(render);
 }
