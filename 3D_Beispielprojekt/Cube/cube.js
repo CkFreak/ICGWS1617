@@ -4,6 +4,8 @@ var eye;
 var target;
 var up;
 
+var angleLog = 0; // Speichert den aktuellen Winkel
+var angleR; 
 var positions;
 var colors;
 
@@ -27,6 +29,11 @@ window.onload = function init()
 	// Get canvas and setup webGL
 	
 	canvas = document.getElementById("gl-canvas");
+    
+    //setzt die größe des Canvas / viewports auf Fenster Größe (nur zu Testzwecken)
+    canvas.width = document.body.clientWidth;
+    canvas.heigth = document.body.clientHeight;
+    
 	gl = WebGLUtils.setupWebGL(canvas);
 	if (!gl) { alert("WebGL isn't available"); }
 
@@ -85,7 +92,7 @@ window.onload = function init()
 									 0.5,  0.5, -0.5,
 									-0.5,  0.5, -0.5,
 									-0.5,  0.5,  0.5
-								]);
+								]); 
 										
 									// Front
 	colors = new Float32Array([     0, 0, 1, 1,
@@ -136,6 +143,14 @@ window.onload = function init()
 									0, 1, 1, 1
 								]);
 
+    
+    // rechnet Winkel in Radianten um
+    function toRadians(angle)
+  {
+      return (angle * Math.PI / 180);
+  }
+   
+
 	// Configure viewport
 
 	gl.viewport(0, 0, canvas.width, canvas.height);
@@ -167,7 +182,7 @@ window.onload = function init()
 	gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vColor);
 	
-	// Set model matrix
+	// Set model matrix für die Objekte
 	
 	cube = new Float32Array([1, 0, 0, 0,
 									0, 1, 0, 0,
@@ -184,10 +199,10 @@ window.onload = function init()
 									0, 0, 1, 0,
 									0, -1, 0, 1]);
     
+    // macht aus einem Cube den Boden via scale
     boden = mat4.scale(boden, boden, vec3.fromValues(3.0, 0.01, 3.0));
 	
 	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
-	gl.uniformMatrix4fv(modelMatrixLoc, false, cube);
 
     // Set view matrix
 
@@ -209,39 +224,74 @@ window.onload = function init()
 	projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
 	gl.uniformMatrix4fv(projectionMatrixLoc, false, projectionMatrix);
     
+    // Bewegung durch WASD
     document.onkeydown = function (e)
     {
         var key = e.keyCode;
+        
+        // 0.2 ist die Geschwindigkeitsskalierungsvariable
+        var sinx = Math.sin(toRadians(angleLog)) * 0.2; 
+        var cosx = Math.cos(toRadians(angleLog)) * 0.2;
         switch (key)
         {
+            //Translation vor und zurück in Abhängigkeit zu den Winkeln, quasi wie bei Pacman.
             case 87:
-                eye[2]= eye[2] - 0.2;
+                eye[0] -= sinx; 
+                eye[2] -= cosx;
+                target[0] -= sinx;
+                target[2] -= cosx;
                 break;
                 
             case 83:
-                eye[2] = eye[2] + 0.2;
+                eye[0] += sinx;
+                eye[2] += cosx;
+                target[0] += sinx;
+                target[2] += cosx;
                 break;
+            
+            // Translation links rechts in Abhängigkeit der Winkel, habs durch ausprobieren herausgefunden. FRAGT NICHT WARUM AMK!    
             case 65:
-                eye[0] = eye[0] - 0.2;
+                eye[0] -= cosx;
+                eye[2] += sinx;
+                target[0] -= cosx;
+                target[2] += sinx;
+                
                 break;
                 
             case 68:
-                eye[0] = eye[0] + 0.2;
+                eye[0] += cosx;
+                eye[2] -= sinx;
+                target[0] += cosx;
+                target[2] -= sinx;
                 break;
         }
     }
     
-    document.onmousemove = function (e)
+    // linke Maustaste addiert je nach Position im Canvas (links oder rechts) einen Winkel.
+    document.onmousedown = function (e)
     {
         
         if (e.clientX > canvas.width / 2)
-            {
-                eye[0] = eye[0] + 0.2;
-            }
+        {
+                angleR = 0;
+                angleR -= 10;
+        }
         else if (e.clientY < canvas.width / 2)
-            {
-                eye[0] = eye[0] - 0.2;
-            }
+        {
+                angleR = 0;
+                angleR = 10;         
+        }
+        
+        //die eigentliche Rotation
+        rotateCam(angleR);     
+    }
+    
+    // http://glmatrix.net/docs/vec3.js.html#line629    -> rotiert um Y Achse: Parameter (output, input, mittelpunkt, angle)!
+    function rotateCam(angle)
+    {
+        angleLog += angle;
+        var angles = toRadians(angle);
+        vec3.rotateY(target, target, eye, angles);
     }
         
     
