@@ -268,18 +268,18 @@ window.onload = function init()
     }
     
     // linke Maustaste addiert je nach Position im Canvas (links oder rechts) einen Winkel.
-    document.onmousedown = function (e)
+    document.onmousemove = function (e)
     {
         
         if (e.clientX > canvas.width / 2)
         {
                 angleR = 0;
-                angleR -= 10;
+                angleR -= 1;
         }
         else if (e.clientY < canvas.width / 2)
         {
                 angleR = 0;
-                angleR = 10;         
+                angleR = 1;        
         }
         
         //die eigentliche Rotation
