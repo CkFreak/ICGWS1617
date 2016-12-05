@@ -9,7 +9,7 @@ var positions;
 var colors;
 
 var xPosition;
-var mouseDown = 0;
+var _mouseDown = 0;
 
 var positionBuffer;
 var colorBuffer;
@@ -252,7 +252,7 @@ window.onload = function init()
                 target[2] += cosx;
                 break;
             
-            // Translation links rechts in Abhängigkeit der Winkel, habs durch ausprobieren herausgefunden. FRAGT NICHT WARUM AMK!    
+            // Translation links rechts in Abhängigkeit der Winkel
             case 65:
                 eye[0] -= cosx;
                 eye[2] += sinx;
@@ -270,33 +270,29 @@ window.onload = function init()
         }
     }
     
+    // Setzt das Feld _mousedown auf true 
     document.onmousedown = function(e){
-    	++mouseDown;
+    	++_mouseDown;
 	}     
 
+	// Setzt das Feld _mousedown wieder auf false
 	document.onmouseup = function(e){
-		--mouseDown;
+		--_mouseDown;
 	}
 
-    // linke Maustaste addiert je nach Position im Canvas (links oder rechts) einen Winkel.
+    // Bewegt die Kamera auf der x-Ebene, wenn _mouseDown true ist.
     document.onmousemove = function (e)
     {
-        if (e.screenX < xPosition && mouseDown)
+        if (e.screenX < xPosition && _mouseDown)
         {
     		console.log(e.screenX);
             rotateCam(-2);
-            // angleR = 0;
-            // angleR -= 1;
         }
-        else if (e.screenX > xPosition && mouseDown)
+        else if (e.screenX > xPosition && _mouseDown)
         {
     		rotateCam(2);
-            // angleR = 0;
-            // angleR += 1;        
         }
         xPosition = e.screenX;
-        //die eigentliche Rotation
-        // rotateCam(angleR);     
     }		
     
     // http://glmatrix.net/docs/vec3.js.html#line629    -> rotiert um Y Achse: Parameter (output, input, mittelpunkt, angle)!
