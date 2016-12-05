@@ -9,6 +9,7 @@ var positions;
 var colors;
 
 var xPosition;
+var yPosition;
 var _mouseDown = 0;
 
 var positionBuffer;
@@ -283,24 +284,48 @@ window.onload = function init()
     // Bewegt die Kamera auf der x-Ebene, wenn _mouseDown true ist.
     document.onmousemove = function (e)
     {
-        if (e.screenX < xPosition && _mouseDown)
-        {
-    		console.log(e.screenX);
-            rotateCam(-2);
-        }
-        else if (e.screenX > xPosition && _mouseDown)
-        {
-    		rotateCam(2);
-        }
-        xPosition = e.screenX;
+    	if(_mouseDown)
+    	{
+    		// Rotation um y-Achse
+	        if (e.screenX < xPosition)
+	        {
+	    		//console.log(e.screenX);
+	            rotateCamY(-1);
+	        }
+	        else if (e.screenX > xPosition )
+	        {
+	    		rotateCamY(1);
+	        }
+
+	        // Rotation um x-Achse
+	        if(e.screenY < yPosition)
+	        {
+	        	console.log(e.screenY);
+	        	rotateCamX(-1);
+	        }
+	        else if(e.screenY > yPosition)
+	        {
+	        	console.log(e.screenY);
+	        	rotateCamX(1);
+	        }
+	        xPosition = e.screenX;
+	        yPosition = e.screenY;
+    	}
+
     }		
     
     // http://glmatrix.net/docs/vec3.js.html#line629    -> rotiert um Y Achse: Parameter (output, input, mittelpunkt, angle)!
-    function rotateCam(angle)
+    function rotateCamY(angle)
     {
         angleLog += angle;
-        var angles = toRadians(angle);
-        vec3.rotateY(target, target, eye, angles);
+        var rad = toRadians(angle);
+        vec3.rotateY(target, target, eye, rad);
+    }
+
+    function rotateCamX(angle)
+    {
+        var rad = toRadians(angle);
+        vec3.rotateX(target, target, eye, rad);
     }
     
 	render();
@@ -315,7 +340,7 @@ function render()
     gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
     gl.uniformMatrix4fv(modelMatrixLoc, false, cube);
     
-	gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
+	gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);		
     gl.uniformMatrix4fv(modelMatrixLoc, false, cube2);
     
     gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
