@@ -5,9 +5,10 @@ var target;
 var up;
 
 var angleLog = 0; // Speichert den aktuellen Winkel
-var angleR; 
 var positions;
 var colors;
+
+var xPosition;
 
 var positionBuffer;
 var colorBuffer;
@@ -26,6 +27,7 @@ var projectionMatrix;
 
 window.onload = function init()
 {
+	
 	// Get canvas and setup webGL
 	
 	canvas = document.getElementById("gl-canvas");
@@ -270,20 +272,22 @@ window.onload = function init()
     // linke Maustaste addiert je nach Position im Canvas (links oder rechts) einen Winkel.
     document.onmousemove = function (e)
     {
-        
-        if (e.clientX > canvas.width / 2)
+        if (e.screenX < xPosition)
         {
-                angleR = 0;
-                angleR -= 1;
+    		console.log(e.screenX);
+            rotateCam(-1);
+            // angleR = 0;
+            // angleR -= 1;
         }
-        else if (e.clientY < canvas.width / 2)
+        else if (e.screenX > xPosition)
         {
-                angleR = 0;
-                angleR = 1;        
+    		rotateCam(1);
+            // angleR = 0;
+            // angleR += 1;        
         }
-        
+        xPosition = e.screenX;
         //die eigentliche Rotation
-        rotateCam(angleR);     
+        // rotateCam(angleR);     
     }
     
     // http://glmatrix.net/docs/vec3.js.html#line629    -> rotiert um Y Achse: Parameter (output, input, mittelpunkt, angle)!
