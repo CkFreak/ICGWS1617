@@ -5,9 +5,11 @@ var target;
 var up;
 
 var angleLog = 0; // Speichert den aktuellen Winkel
-var angleR; 
 var positions;
 var colors;
+
+var xPosition;
+var _mouseDown = 0;
 
 var positionBuffer;
 var colorBuffer;
@@ -26,6 +28,7 @@ var projectionMatrix;
 
 window.onload = function init()
 {
+	
 	// Get canvas and setup webGL
 	
 	canvas = document.getElementById("gl-canvas");
@@ -249,7 +252,7 @@ window.onload = function init()
                 target[2] += cosx;
                 break;
             
-            // Translation links rechts in Abhängigkeit der Winkel, habs durch ausprobieren herausgefunden. FRAGT NICHT WARUM AMK!    
+            // Translation links rechts in Abhängigkeit der Winkel
             case 65:
                 eye[0] -= cosx;
                 eye[2] += sinx;
@@ -267,24 +270,30 @@ window.onload = function init()
         }
     }
     
-    // linke Maustaste addiert je nach Position im Canvas (links oder rechts) einen Winkel.
-    document.onmousedown = function (e)
+    // Setzt das Feld _mousedown auf true 
+    document.onmousedown = function(e){
+    	++_mouseDown;
+	}     
+
+	// Setzt das Feld _mousedown wieder auf false
+	document.onmouseup = function(e){
+		--_mouseDown;
+	}
+
+    // Bewegt die Kamera auf der x-Ebene, wenn _mouseDown true ist.
+    document.onmousemove = function (e)
     {
-        
-        if (e.clientX > canvas.width / 2)
+        if (e.screenX < xPosition && _mouseDown)
         {
-                angleR = 0;
-                angleR -= 10;
+    		console.log(e.screenX);
+            rotateCam(-2);
         }
-        else if (e.clientY < canvas.width / 2)
+        else if (e.screenX > xPosition && _mouseDown)
         {
-                angleR = 0;
-                angleR = 10;         
+    		rotateCam(2);
         }
-        
-        //die eigentliche Rotation
-        rotateCam(angleR);     
-    }
+        xPosition = e.screenX;
+    }		
     
     // http://glmatrix.net/docs/vec3.js.html#line629    -> rotiert um Y Achse: Parameter (output, input, mittelpunkt, angle)!
     function rotateCam(angle)
@@ -293,9 +302,9 @@ window.onload = function init()
         var angles = toRadians(angle);
         vec3.rotateY(target, target, eye, angles);
     }
-        
     
 	render();
+	
 };
 
 function render()
