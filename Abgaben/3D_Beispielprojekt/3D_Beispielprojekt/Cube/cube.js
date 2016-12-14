@@ -11,12 +11,9 @@ var colors;
 var xPosition;
 var yPosition;
 var _mouseDown = 0;
-var _keyPressed = [false, false, false, false]; // Array für die gedrückten Tasten: W A S D
 
 var positionBuffer;
 var colorBuffer;
-var cubeVerticesNormalBuffer;
-
 
 var modelMatrixLoc;
 var modelMatrixLoc2;
@@ -32,9 +29,9 @@ var projectionMatrix;
 
 window.onload = function init()
 {
-	initWebGL(document);
-/*
+	
 	// Get canvas and setup webGL
+	
 	canvas = document.getElementById("gl-canvas");
     
     //setzt die größe des Canvas / viewports auf Fenster Größe (nur zu Testzwecken)
@@ -43,9 +40,9 @@ window.onload = function init()
     
 	gl = WebGLUtils.setupWebGL(canvas);
 	if (!gl) { alert("WebGL isn't available"); }
-*/
 
-	// Specify position and color of the vertices	
+	// Specify position and color of the vertices
+	
 									 // Front
 	positions = new Float32Array([  -0.5, -0.5,  0.5,
 								     0.5, -0.5,  0.5,
@@ -151,75 +148,26 @@ window.onload = function init()
 								]);
 
     
-	// Aus den Mozilla-Docs:
-	
-  
-  var vertexNormals = new Float32Array([
-    // vorne
-     0.0,  0.0,  1.0,
-     0.0,  0.0,  1.0,
-     0.0,  0.0,  1.0,
-     0.0,  0.0,  1.0,
-     0.0,  0.0,  1.0,
-     0.0,  0.0,  1.0,
+    // rechnet Winkel in Radianten um
+    function toRadians(angle)
+  {
+      return (angle * Math.PI / 180);
+  }
+   
 
-     // rechts
-     1.0,  0.0,  0.0,
-     1.0,  0.0,  0.0,
-     1.0,  0.0,  0.0,
-     1.0,  0.0,  0.0,
-     1.0,  0.0,  0.0,
-     1.0,  0.0,  0.0,
-    
-    // hinten
-     0.0,  0.0, -1.0,
-     0.0,  0.0, -1.0,
-     0.0,  0.0, -1.0,
-     0.0,  0.0, -1.0,
-     0.0,  0.0, -1.0,
-     0.0,  0.0, -1.0,
-    
-	// links
-    -1.0,  0.0,  0.0,
-    -1.0,  0.0,  0.0,
-    -1.0,  0.0,  0.0,
-    -1.0,  0.0,  0.0,
-    -1.0,  0.0,  0.0,
-    -1.0,  0.0,  0.0,
-
-    // unten
-     0.0, -1.0,  0.0,
-     0.0, -1.0,  0.0,
-     0.0, -1.0,  0.0,
-     0.0, -1.0,  0.0,
-     0.0, -1.0,  0.0,
-     0.0, -1.0,  0.0,
-
-	// oben
-     0.0,  1.0,  0.0,
-     0.0,  1.0,  0.0,
-     0.0,  1.0,  0.0,
-     0.0,  1.0,  0.0,
-     0.0,  1.0,  0.0,
-     0.0,  1.0,  0.0   
-    
-  ]);
-  
-  
-
-
-/*
 	// Configure viewport
+
 	gl.viewport(0, 0, canvas.width, canvas.height);
-	gl.clearColor(1.0, 0.9, 1.0, 1.0);
+	gl.clearColor(1.0, 1.0, 1.0, 1.0);
 	gl.enable(gl.DEPTH_TEST);
-*/
 
 	// Init shader program and bind it
+
 	var program = initShaders(gl, "vertex-shader", "fragment-shader");
 	gl.useProgram(program);
 
     // Load positions into the GPU and associate shader variables
+
 	positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
@@ -229,6 +177,7 @@ window.onload = function init()
 	gl.enableVertexAttribArray(vPosition);
 
 	// Load colors into the GPU and associate shader variables
+	
 	colorBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
@@ -236,40 +185,23 @@ window.onload = function init()
 	var vColor = gl.getAttribLocation(program, "vColor");
 	gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vColor);
-
-	// Aus den Mozialla-Docs
-	cubeVerticesNormalBuffer = gl.createBuffer();
-  	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesNormalBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, vertexNormals, gl.STATIC_DRAW);
-
-
-	var aVertexNormal = gl.getAttribLocation(program, "aVertexNormal");
-    gl.vertexAttribPointer(aVertexNormal, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(aVertexNormal);
-
-   
-/*
-    var normalMatrix = mvMatrix.inverse();
-  normalMatrix = normalMatrix.transpose();
-  var nUniform = gl.getUniformLocation(shaderProgram, "uNormalMatrix");
-  gl.uniformMatrix4fv(nUniform, false, new WebGLFloatArray(normalMatrix.flatten()));
-*/
-
+	
 	// Set model matrix für die Objekte
+	
 	cube = new Float32Array([1, 0, 0, 0,
-							0, 1, 0, 0,
-							0, 0, 1, 0,
-							0.6, 0, 0, 1]);
+									0, 1, 0, 0,
+									0, 0, 1, 0,
+									0.6, 0, 0, 1]);
     
     cube2 = new Float32Array([1, 0, 0, 0,
-							0, 1, 0, 0,
-							0, 0, 1, 0,
-							-0.6, 0, 0, 1]);
+									0, 1, 0, 0,
+									0, 0, 1, 0,
+									-0.6, 0, 0, 1]);
     
     boden = new Float32Array([1, 0, 0, 0,
-							0, 1, 0, 0,
-							0, 0, 1, 0,
-							0, -1, 0, 1]);
+									0, 1, 0, 0,
+									0, 0, 1, 0,
+									0, -1, 0, 1]);
     
     // macht aus einem Cube den Boden via scale
     boden = mat4.scale(boden, boden, vec3.fromValues(3.0, 0.01, 3.0));
@@ -299,16 +231,15 @@ window.onload = function init()
     // Bewegung durch WASD
     document.onkeydown = function (e)
     {
+        var key = e.keyCode;
         
         // 0.2 ist die Geschwindigkeitsskalierungsvariable
         var sinx = Math.sin(toRadians(angleLog)) * 0.2; 
         var cosx = Math.cos(toRadians(angleLog)) * 0.2;
-      
-        switch (e.keyCode)
+        switch (key)
         {
             //Translation vor und zurück in Abhängigkeit zu den Winkeln, quasi wie bei Pacman.
             case 87:
-            	_keyPressed[0] = true;
                 eye[0] -= sinx; 
                 eye[2] -= cosx;
                 target[0] -= sinx;
@@ -316,7 +247,6 @@ window.onload = function init()
                 break;
                 
             case 83:
-            	_keyPressed[1] = true;
                 eye[0] += sinx;
                 eye[2] += cosx;
                 target[0] += sinx;
@@ -325,15 +255,14 @@ window.onload = function init()
             
             // Translation links rechts in Abhängigkeit der Winkel
             case 65:
-            	_keyPressed[2] = true;
                 eye[0] -= cosx;
                 eye[2] += sinx;
                 target[0] -= cosx;
                 target[2] += sinx;
+                
                 break;
                 
             case 68:
-            	_keyPressed[3] = true;
                 eye[0] += cosx;
                 eye[2] -= sinx;
                 target[0] += cosx;
@@ -342,28 +271,6 @@ window.onload = function init()
         }
     }
     
-    //gedrückte Taste wird nicht mehr gedrückt
-    document.onkeyup = function(e){
-    	switch(e.keyCode){
-    		case 87:
-    			_keyPressed[0] = false;
-    			break;
-			
-			case 83:
-    			_keyPressed[1] = false;
-    			break;
-
-			case 65:
-    			_keyPressed[2] = false;
-    			break;
-
-			case 68:
-    			_keyPressed[3] = false;
-    			break;
-    	}
-
-    }
-
     // Setzt das Feld _mousedown auf true 
     document.onmousedown = function(e){
     	++_mouseDown;
@@ -377,42 +284,36 @@ window.onload = function init()
     // Bewegt die Kamera auf der x-Ebene, wenn _mouseDown true ist.
     document.onmousemove = function (e)
     {
+    	if(_mouseDown)
+    	{
+    		// Rotation um y-Achse
+	        if (e.screenX < xPosition)
+	        {
+	    		//console.log(e.screenX);
+	            rotateCamY(-1);
+	        }
+	        else if (e.screenX > xPosition )
+	        {
+	    		rotateCamY(1);
+	        }
 
-    	// Gibt den Winkel an, um den rotiert werden soll
-    	var xzRotationsWinkel = 0.5;
-    	var yRotationsWinkel = 2;
-
-    	//if(_mouseDown)
-    	//{
-    		// Rotation um y-Achse, ruft eine Hilfsfunktion hinter init auf
-    	//}
-        if (e.screenX > xPosition )
-        {
-    		rotateY(toRadians(yRotationsWinkel));
-        }
-        if (e.screenX < xPosition)
-        {
-	       	rotateY(toRadians(-yRotationsWinkel));
-        }
-
-        // Rotation um x-Achse
-        if(e.screenY > yPosition)
-        {
-        	//console.log(e.screenY);
-        	rotateXZ(toRadians(xzRotationsWinkel));
-        }
-
-        if(e.screenY < yPosition)
-        {
-        	//console.log(e.screenY);
-        	rotateXZ(toRadians(-xzRotationsWinkel));
-        }
-
-        xPosition = e.screenX;
-        yPosition = e.screenY;
+	        // Rotation um x-Achse
+	        if(e.screenY < yPosition)
+	        {
+	        	console.log(e.screenY);
+	        	rotateCamX(-1);
+	        }
+	        else if(e.screenY > yPosition)
+	        {
+	        	console.log(e.screenY);
+	        	rotateCamX(1);
+	        }
+	        xPosition = e.screenX;
+	        yPosition = e.screenY;
+    	}
 
     }		
-    /* Obsolet und eine schmutzige Verschachtelung!
+    
     // http://glmatrix.net/docs/vec3.js.html#line629    -> rotiert um Y Achse: Parameter (output, input, mittelpunkt, angle)!
     function rotateCamY(angle)
     {
@@ -420,40 +321,16 @@ window.onload = function init()
         var rad = toRadians(angle);
         vec3.rotateY(target, target, eye, rad);
     }
+
     function rotateCamX(angle)
     {
         var rad = toRadians(angle);
         vec3.rotateX(target, target, eye, rad);
     }
-    */
+    
 	render();
 	
 };
-
-function initWebGL(document)
-{
-	// Get canvas and setup webGL
-	canvas = document.getElementById("gl-canvas");
-    
-    //setzt die größe des Canvas / viewports auf Fenster Größe (nur zu Testzwecken)
-    canvas.width = document.body.clientWidth / 2;
-    canvas.heigth = document.body.clientHeight;
-    
-	gl = WebGLUtils.setupWebGL(canvas);
-	if (!gl) { alert("WebGL isn't available"); }
-
-	// Configure viewport
-	gl.viewport(0, 0, canvas.width, canvas.height);
-	gl.clearColor(1.0, 0.9, 1.0, 1.0);
-	gl.enable(gl.DEPTH_TEST);
-}
-
-// rechnet Winkel in Radianten um
-function toRadians(angle)
-{
-  return (angle * Math.PI / 180);
-}
-
 
 function render()
 {
@@ -472,27 +349,4 @@ function render()
     gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
     
 	requestAnimFrame(render);
-}
-
-// Implementation der Quaternionen von Yannic
-function rotateY(radY){
-	var direction = vec3.create();
-	vec3.subtract(direction,target,eye);
-	var q = quat.create();
-	quat.setAxisAngle(q,up,radY);
-	vec3.transformQuat(direction,direction,q);
-	vec3.add(target,eye,direction);
-}
-
-function rotateXZ(radXZ){
-	var direction = vec3.create();
-	vec3.subtract(direction,target,eye);
-	var strafeDirection = vec3.create();
-	vec3.cross(strafeDirection,direction,up);
-	var upDirection = vec3.create();
-	vec3.copy(upDirection,up);
-	var q = quat.create();
-	quat.setAxisAngle(q,strafeDirection,radXZ);
-	vec3.transformQuat(direction,direction,q);
-	vec3.add(target,eye,direction);
 }
