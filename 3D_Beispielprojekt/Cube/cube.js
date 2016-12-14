@@ -8,9 +8,12 @@ var angleLog = 0; // Speichert den aktuellen Winkel
 var angleR; 
 var positions;
 var colors;
+var normals;
 
 var positionBuffer;
 var colorBuffer;
+var normalsBuffer;
+var normal;
 
 var modelMatrixLoc;
 var modelMatrixLoc2;
@@ -23,6 +26,55 @@ var viewMatrix;
 
 var projectionMatrixLoc;
 var projectionMatrix;
+
+//Cube Faces 
+var frontFace = [                   -0.5, -0.5,  0.5,
+								     0.5, -0.5,  0.5,
+								     0.5,  0.5,  0.5,
+										
+									 0.5,  0.5,  0.5,
+									-0.5,  0.5,  0.5,
+									-0.5, -0.5,  0.5];
+
+var rightFace = [                    0.5,  0.5,  0.5,
+									 0.5, -0.5,  0.5,
+									 0.5, -0.5, -0.5,
+										
+									 0.5, -0.5, -0.5,
+									 0.5,  0.5, -0.5,
+									 0.5,  0.5,  0.5];
+
+var backFace = [                    -0.5, -0.5, -0.5,
+									 0.5, -0.5, -0.5,
+									 0.5,  0.5, -0.5,
+										
+									 0.5,  0.5, -0.5,
+									-0.5,  0.5, -0.5,
+									-0.5, -0.5, -0.5];
+
+var leftFace = [                    -0.5,  0.5,  0.5,
+									-0.5, -0.5,  0.5,
+									-0.5, -0.5, -0.5,
+										
+									-0.5, -0.5, -0.5,
+									-0.5,  0.5, -0.5,
+									-0.5,  0.5,  0.5];
+
+var bottomFace = [                  -0.5, -0.5,  0.5,
+									 0.5, -0.5,  0.5,
+									 0.5, -0.5, -0.5,
+										
+									 0.5, -0.5, -0.5,
+									-0.5, -0.5, -0.5,
+									-0.5, -0.5,  0.5];
+
+var topFace = [                     -0.5,  0.5,  0.5,
+									 0.5,  0.5,  0.5,
+									 0.5,  0.5, -0.5,
+										
+									 0.5,  0.5, -0.5,
+									-0.5,  0.5, -0.5,
+									-0.5,  0.5,  0.5];
 
 window.onload = function init()
 {
@@ -142,7 +194,8 @@ window.onload = function init()
 									0, 1, 1, 1,
 									0, 1, 1, 1
 								]);
-
+// TO - DO Normalen definieren.
+    normals = new Float32Array([]);
     
     // rechnet Winkel in Radianten um
     function toRadians(angle)
@@ -181,6 +234,19 @@ window.onload = function init()
 	var vColor = gl.getAttribLocation(program, "vColor");
 	gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vColor);
+    
+    // Load normals into the GPU and associate shader variables
+    
+    generateAllNormals();
+        console.log(normals);
+    
+    var normalsBuffer = gl.createBuffer(); 
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
+    
+    var vNormal = gl.getAttribLocation(program, "vNormal");
+    gl.vertexAttribPointer(vNormal, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vNormal);
 	
 	// Set model matrix für die Objekte
 	
@@ -315,4 +381,50 @@ function render()
     gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
     
 	requestAnimFrame(render);
+}
+
+function calculateNormalVector(positionVertices)
+{
+    var x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
+    
+    x1 = positionVertices[0];
+    y1 = positionVertices[1];
+    z1 = positionVertices[2];
+    x2 = positionVertices[3];
+    y2 = positionVertices[4];
+    z2 = positionVertices[5];
+    x3 = positionVertices[6];
+    y3 = positionVertices[7];
+    z3 = positionVertices[8];
+    x4 = positionVertices[12];
+    y4 = positionVertices[13];
+    z4 = positionVertices[14];
+    
+    var firstVector = vec3.fromValues((x2-x1), (y2-y1), (z2-z1));
+    var secondVector = vec3.fromValues((x4-x1), (y4-y1), (z4-z1));
+    
+    var normalVector =
+        vec3.fromValues((y2-y1)*(z4-z1)-(z2-z1)*(y4-y1), -(x2-x1)*(z4-z1)+(z2-z1)*(x4-x1), (x2-x1)*(y4-y1)-(y2-y1)*(x4-x1));
+    
+    
+    return normalVector;
+}
+
+function generateAllNormals()
+{
+    var allFaces = [frontFace, rightFace, backFace, leftFace, bottomFace, topFace];
+    var array = [];
+    for (var i = 0; i < 6; ++i)
+        {
+            var a = calculateNormalVector(allFaces[i]);
+            for (var j = 0; j < 6 ; ++j)
+            {
+                array.push(a[0]);
+                array.push(a[1]);
+                array.push(a[2]);
+            }
+            
+                
+        }
+    normals = new Float32Array(array);
 }
