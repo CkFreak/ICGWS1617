@@ -7,12 +7,32 @@
 		<script id="vertex-shader" type="x-shader/x-vertex">
 			attribute vec4 vPosition;
 			attribute vec4 vColor;
-			varying vec4 fColor;
-			attribute vec3 aVertexNormal;
+			attribute vec3 vNormal;
 						
 			uniform mat4 modelMatrix;
 			uniform mat4 viewMatrix;
 			uniform mat4 projectionMatrix;
+			uniform mat4 invertedTransposedT;
+
+			//Koeffizienten, zur Vereinfachung konstant und alle gleich
+			float ka = 0.3;
+			float kd = 0.5;
+			float ks = 0.75;
+
+			vec4 ia = vec4(0.3,1.0,0.8,1.0);
+			vec4 id = vec4(0.3,0.5,0.8,1.0);
+			vec4 is = vec4(1.0,0.0,0.8,1.0);
+
+			//vec4 Lpos = (0,0,0,1);
+			//vec4 L = 
+			//vec4 N = normalize(vNormal);
+			//vec4 V = normalize(vec4(0,0,0,1) - vNormal);
+
+			//vec4 ambient = ia * ka;
+			//vec4 diffus = id * ka * max(0,dot(N,));
+
+
+			varying vec4 fColor;
 
 			// Aus den Mozilla-Docs
 			varying vec3 vLighting;
@@ -22,21 +42,42 @@
 			{
 				gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
 
+				vec4 lichtpos = normalize(vec4(1,0.5,0.5,0));
+				
+				vec4 vertexNormale = projectionMatrix * viewMatrix * modelMatrix * vec4(vNormal,0);
+
+				vec4 l = normalize(lichtpos - gl_Position);
+				vec4 n = normalize(vertexNormale - gl_Position);
+				vec4 r = normalize(reflect(l,n));
+				vec4 v = normalize(vec4(0,0,0,0) - gl_Position);
+				float x = 5.0;
+
+				vec4 ambient = ia * ka;
+				vec4 diffus = id * kd * max(0.0, dot(n,l));
+				vec4 spekular = is * ks * pow(float(max(0.0,dot(r,v))),x);
+
+				fColor = ambient + diffus + spekular;  
+					
+
+
+
 				// Aus den Mozilla-Docs
 				// Intensität des ambienten Lichtes
-				vec3 ambientLight = vec3(0.1, 0.1, 0.1);
+				//vec3 ambientLight = vec3(0.1, 0.1, 0.1);
         		// Intensität des diffusen Lichtes
-        		vec3 Idiffus = vec3(1, 1, 1); 
+        		//vec3 Idiffus = vec3(1, 1, 1); 
         		// Quelle des diffusen Lichtes? Keine erleuchtung, wenn 0,0,0.
-        		vec3 L = vec3(0, 0, -0.4);
+        		//vec3 L = vec3(0, 0, -0.4);
         
-    			vec4 transformedNormal = projectionMatrix * vec4(aVertexNormal, 1.0);
+    			//vec4 transformedNormal = projectionMatrix * vec4(aVertexNormal, 1.0);
         
-       			float spekular = max(dot(transformedNormal.xyz, L), 0.0);
+       			//float spekular = max(dot(transformedNormal.xyz, L), 0.0);
 
-        		vLighting = ambientLight + (Idiffus * spekular);
+        		//vLighting = ambientLight + (Idiffus * spekular);
 
-        		fColor = vec4(vLighting,1.0) * vColor;
+
+        		//fColor = vec4(vLighting,1.0) * vColor;
+        		
 
 			}
 		</script>
@@ -50,10 +91,7 @@
 			
 			void main()
 			{
-
-
-				//gl_FragColor = fColor;
-				gl_FragColor = vec4(1,0,0.5,1);
+				gl_FragColor = fColor;
 			}
 		</script>
 
@@ -65,6 +103,7 @@
 		</script>
 		<script type="text/javascript" src="cube.js">
 		</script>
+		<!-- Der Cube hat bis jetzt noch keine Verwendung -->
 		<script type="text/plain" id="cube">
 			####
 			#

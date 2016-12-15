@@ -222,9 +222,9 @@ window.onload = function init()
 	gl.bufferData(gl.ARRAY_BUFFER, vertexNormals, gl.STATIC_DRAW);
 
 
-	var aVertexNormal = gl.getAttribLocation(program, "aVertexNormal");
-    gl.vertexAttribPointer(aVertexNormal, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(aVertexNormal);
+	var vNormal = gl.getAttribLocation(program, "vNormal");
+    gl.vertexAttribPointer(vNormal, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vNormal);
 
 	// Set model matrix für die Objekte
 	cube = new Float32Array([1, 0, 0, 0,
@@ -289,122 +289,7 @@ function initWebGL(document)
 	gl.useProgram(program);
 }
 
-// Setzt die Listener
-function initListener(document){
 
-// Bewegung durch WASD
-document.onkeydown = function (e)
-{   
-    // 0.2 ist die Geschwindigkeitsskalierungsvariable
-    var sinx = Math.sin(toRadians(angleLog)) * 0.2; 
-    var cosx = Math.cos(toRadians(angleLog)) * 0.2;
-  
-    switch (e.keyCode)
-    {
-        //Translation vor und zurück in Abhängigkeit zu den Winkeln, quasi wie bei Pacman.
-        case 87:
-        	_keyPressed[0] = true;
-            eye[0] -= sinx; 
-            eye[2] -= cosx;
-            target[0] -= sinx;
-            target[2] -= cosx;
-            break;
-            
-        case 83:
-        	_keyPressed[1] = true;
-            eye[0] += sinx;
-            eye[2] += cosx;
-            target[0] += sinx;
-            target[2] += cosx;
-            break;
-        
-        // Translation links rechts in Abhängigkeit der Winkel
-        case 65:
-        	_keyPressed[2] = true;
-            eye[0] -= cosx;
-            eye[2] += sinx;
-            target[0] -= cosx;
-            target[2] += sinx;
-            break;
-            
-        case 68:
-        	_keyPressed[3] = true;
-            eye[0] += cosx;
-            eye[2] -= sinx;
-            target[0] += cosx;
-            target[2] -= sinx;
-            break;
-    }
-}
-
-//gedrückte Taste wird nicht mehr gedrückt
-document.onkeyup = function(e){
-	switch(e.keyCode){
-		case 87:
-			_keyPressed[0] = false;
-			break;
-		
-		case 83:
-			_keyPressed[1] = false;
-			break;
-
-		case 65:
-			_keyPressed[2] = false;
-			break;
-
-		case 68:
-			_keyPressed[3] = false;
-			break;
-	}
-}
-
-// Setzt das Feld _mousedown auf true 
-document.onmousedown = function(e){
-	++_mouseDown;
-}     
-
-// Setzt das Feld _mousedown wieder auf false
-document.onmouseup = function(e){
-	--_mouseDown;
-}
-
-// Bewegt die Kamera auf der x-Ebene, wenn _mouseDown true ist.
-document.onmousemove = function (e)
-{
-	// Gibt den Winkel an, um den rotiert werden soll
-	var xzRotationsWinkel = 0.5;
-	var yRotationsWinkel = 2;
-
-	//if(_mouseDown)
-	//{
-		// Rotation um y-Achse, ruft eine Hilfsfunktion hinter init auf
-	//}
-    if (e.screenX > xPosition )
-    {
-		rotateY(toRadians(yRotationsWinkel));
-    }
-    if (e.screenX < xPosition)
-    {
-       	rotateY(toRadians(-yRotationsWinkel));
-    }
-
-    // Rotation um x-Achse
-    if(e.screenY > yPosition)
-    {
-    	//console.log(e.screenY);
-    	rotateXZ(toRadians(xzRotationsWinkel));
-    }
-
-    if(e.screenY < yPosition)
-    {
-    	//console.log(e.screenY);
-    	rotateXZ(toRadians(-xzRotationsWinkel));
-    }
-
-    xPosition = e.screenX;
-    yPosition = e.screenY;
-    }	
-}
 
 function render()
 {
@@ -458,4 +343,121 @@ function rotateXZ(radXZ){
 function toRadians(angle)
 {
   return (angle * Math.PI / 180);
+}
+
+// Setzt die Listener
+function initListener(document){
+
+	// Bewegung durch WASD
+	document.onkeydown = function (e)
+	{   
+	    // 0.2 ist die Geschwindigkeitsskalierungsvariable
+	    var sinx = Math.sin(toRadians(angleLog)) * 0.2; 
+	    var cosx = Math.cos(toRadians(angleLog)) * 0.2;
+	  
+	    switch (e.keyCode)
+	    {
+	        //Translation vor und zurück in Abhängigkeit zu den Winkeln, quasi wie bei Pacman.
+	        case 87:
+	        	_keyPressed[0] = true;
+	            eye[0] -= sinx; 
+	            eye[2] -= cosx;
+	            target[0] -= sinx;
+	            target[2] -= cosx;
+	            break;
+	            
+	        case 83:
+	        	_keyPressed[1] = true;
+	            eye[0] += sinx;
+	            eye[2] += cosx;
+	            target[0] += sinx;
+	            target[2] += cosx;
+	            break;
+	        
+	        // Translation links rechts in Abhängigkeit der Winkel
+	        case 65:
+	        	_keyPressed[2] = true;
+	            eye[0] -= cosx;
+	            eye[2] += sinx;
+	            target[0] -= cosx;
+	            target[2] += sinx;
+	            break;
+	            
+	        case 68:
+	        	_keyPressed[3] = true;
+	            eye[0] += cosx;
+	            eye[2] -= sinx;
+	            target[0] += cosx;
+	            target[2] -= sinx;
+	            break;
+	    }
+	}
+
+	//gedrückte Taste wird nicht mehr gedrückt
+	document.onkeyup = function(e){
+		switch(e.keyCode){
+			case 87:
+				_keyPressed[0] = false;
+				break;
+			
+			case 83:
+				_keyPressed[1] = false;
+				break;
+
+			case 65:
+				_keyPressed[2] = false;
+				break;
+
+			case 68:
+				_keyPressed[3] = false;
+				break;
+		}
+	}
+
+	// Setzt das Feld _mousedown auf true 
+	document.onmousedown = function(e){
+		++_mouseDown;
+	}     
+
+	// Setzt das Feld _mousedown wieder auf false
+	document.onmouseup = function(e){
+		--_mouseDown;
+	}
+
+	// Bewegt die Kamera auf der x-Ebene, wenn _mouseDown true ist.
+	document.onmousemove = function (e)
+	{
+		// Gibt den Winkel an, um den rotiert werden soll
+		var xzRotationsWinkel = 0.5;
+		var yRotationsWinkel = 2;
+
+		//if(_mouseDown)
+		//{
+			// Rotation um y-Achse, ruft eine Hilfsfunktion hinter init auf
+		//}
+	    if (e.screenX > xPosition )
+	    {
+			rotateY(toRadians(yRotationsWinkel));
+	    }
+	    if (e.screenX < xPosition)
+	    {
+	       	rotateY(toRadians(-yRotationsWinkel));
+	    }
+
+	    // Rotation um x-Achse
+	    if(e.screenY > yPosition)
+	    {
+	    	//console.log(e.screenY);
+	    	rotateXZ(toRadians(xzRotationsWinkel));
+	    }
+
+	    if(e.screenY < yPosition)
+	    {
+	    	//console.log(e.screenY);
+	    	rotateXZ(toRadians(-xzRotationsWinkel));
+	    }
+
+	    xPosition = e.screenX;
+	    yPosition = e.screenY;
+    }	
 }
