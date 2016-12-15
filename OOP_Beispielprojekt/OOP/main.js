@@ -1,5 +1,6 @@
 var gl;
 var canvas;
+var defaultProgram;
 
 var objects = [];
 var modelMatrixLoc;
@@ -17,22 +18,10 @@ var RenderObject = function(modelMatrix, color, vertexBuffer, indexBuffer)
 
 window.onload = function init()
 {
+	initWebGL(document);
 	// Get canvas and setup webGL
 	
-	canvas = document.getElementById("gl-canvas");
-	gl = WebGLUtils.setupWebGL(canvas);
-	if (!gl) { alert("WebGL isn't available"); }
-
-	// Configure viewport
-
-	gl.viewport(0.0, 0.0, canvas.width, canvas.height);
-	gl.clearColor(1.0, 1.0, 1.0, 1.0);
-	gl.enable(gl.DEPTH_TEST);
-
-	// Init shader programs
-
-	var defaultProgram = initShaders(gl, "vertex-shader", "fragment-shader");
-	gl.useProgram (defaultProgram);
+	
 
 	///// CUBE OBJECT /////
 	
@@ -118,3 +107,19 @@ function render()
 	requestAnimFrame(render);
 }
 
+function initWebGL(document){
+	canvas = document.getElementById("gl-canvas");
+	gl = WebGLUtils.setupWebGL(canvas);
+	if (!gl) { alert("WebGL isn't available"); }
+
+	// Configure viewport
+
+	gl.viewport(0.0, 0.0, canvas.width, canvas.height);
+	gl.clearColor(1.0, 1.0, 1.0, 1.0);
+	gl.enable(gl.DEPTH_TEST);
+
+	// Init shader programs
+
+	defaultProgram = initShaders(gl, "vertex-shader", "fragment-shader");
+	gl.useProgram (defaultProgram);
+};
