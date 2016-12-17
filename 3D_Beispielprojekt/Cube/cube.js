@@ -65,11 +65,7 @@ window.onload = function init()
 
 	//Set transformationmatrix for normals
 	normTransMatrix = mat4.create();
-	normTransMatrix = mat4.transpose(normTransMatrix,normTransMatrix);
-	normTransMatrix = mat4.invert(normTransMatrix,normTransMatrix);
-
-	normTransMatrixLoc = gl.getUniformLocation(program, "normTransMatrix");
-	gl.uniformMatrix4fv(normTransMatrixLoc, false, normTransMatrix);
+    normTransMatrixLoc = gl.getUniformLocation(program, "normTransMatrix");
 	
 	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
 	colorLoc = gl.getUniformLocation(program, "vColor");
@@ -103,12 +99,21 @@ function render()
 		// Set uniforms
 		gl.uniformMatrix4fv(modelMatrixLoc, false, object.modelMatrix);
 		gl.uniform4fv(colorLoc, object.color);
+        
+        // Berechnet die transponierte und invertierte Normalentransformationsmatrix!
+        mat4.multiply(normTransMatrix, projectionMatrix, viewMatrix);
+        mat4.multiply(normTransMatrix, object.modelMatrix, normTransMatrix);
+        mat4.transpose(normTransMatrix, normTransMatrix);
+        mat4.invert(normTransMatrix, normTransMatrix);
+        gl.uniformMatrix4fv(normTransMatrixLoc, false, normTransMatrix);
+        
 
 		// Draw
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object.indexBuffer);
 		gl.drawElements(gl.TRIANGLES, object.numVertices, gl.UNSIGNED_SHORT, 0);
 		//gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
 	});
+    
 
     // Wiederhole den Spaß
 	requestAnimFrame(render);
@@ -234,7 +239,7 @@ function initObjects(document){
 		vec3.fromValues(10,0.1,10));
 	// Bewege Cube auf der Y-Achse nach unten
 	mat4.translate(cubeObject.modelMatrix, cubeObject.modelMatrix,
-		vec3.fromValues(0,-15,0));
+		vec3.fromValues(0,-13,0));
 	// Pushe das neue Objekt auf den Stack
 	objects.push(cubeObject);
 }
@@ -320,9 +325,11 @@ function initListener(document){
 		if(_mouseDown){
 		    if (e.screenX > xPosition ){
 				rotateY(toRadians(yRotationsWinkel));
+                _kameraWinkel+= yRotationsWinkel;
 		    }
 		    if (e.screenX < xPosition){
 		       	rotateY(toRadians(-yRotationsWinkel));
+                _kameraWinkel-= yRotationsWinkel;
 		    }
 		    // Rotation um x-Achse
 		    if(e.screenY > yPosition){
