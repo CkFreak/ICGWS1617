@@ -8,6 +8,9 @@ var objects = [];
 var modelMatrixLoc;
 var positionLoc;
 var colorLoc;
+var viewMatrixLoc;
+var projectionMatrixLoc;
+var normTransMatrixLoc;
 
 // Für die Bewegung
 var eye;
@@ -22,38 +25,6 @@ var _mouseDown = 0;
 var xPosition;
 var yPosition;
 
-
-// var angleLog = 0; // Speichert den aktuellen Winkel
-// var positions;
-// var colors;
-
-// var earthTexture;
-// var earthImage;
-
-// 
-
-// var positionBuffer;
-// var colorBuffer;
-// var cubeVerticesNormalBuffer;
-// var texBuffer;
-
-// 
-
-// //var erthTexture;
-
-// var modelMatrixLoc2;
-// var boden;
-// var cube;
-// var cube2;
-
-// var viewMatrixLoc;
-// var viewMatrix;
-
-// var projectionMatrixLoc;
-// var projectionMatrix;
-
-// var normTransCubeMatrixLoc;
-// var normTransCubeMatrix;
 
 var RenderObject = function(modelMatrix, color, vertexBuffer, indexBuffer, normalBuffer)
 {
@@ -70,33 +41,7 @@ window.onload = function init()
 {
 	initWebGL(document);
 	initListener(document);
-
-	/// Setze die Objekte ///
-	// Create CylinderObject
-	var cylinderString = document.getElementById("cylinder").innerHTML;
-	cylinderMesh = new OBJ.Mesh(cylinderString);
-	OBJ.initMeshBuffers(gl, cylinderMesh);
-	
-	cylinderObject = new RenderObject(mat4.create(), vec4.fromValues(1, 0, 0, 1), 
-		cylinderMesh.vertexBuffer, cylinderMesh.indexBuffer, cylinderMesh.normalBuffer);
-	objects.push(cylinderObject);
-	
-	// Create CubeObject
-	var cubeString = document.getElementById("cube").innerHTML;
-	cubeMesh = new OBJ.Mesh(cubeString);
-	OBJ.initMeshBuffers(gl, cubeMesh);
-
-	cubeObject = new RenderObject(mat4.create(), vec4.fromValues(0, 0, 1, 1),
-		cubeMesh.vertexBuffer, cubeMesh.indexBuffer, cubeMesh.normalBuffer);	
-	// Skaliere Form unseres Cubes
-	mat4.scale(cubeObject.modelMatrix, cubeObject.modelMatrix, 
-		vec3.fromValues(10,0.1,10));
-	// Bewege Cube auf der Y-Achse nach unten
-	mat4.translate(cubeObject.modelMatrix, cubeObject.modelMatrix,
-		vec3.fromValues(0,-15,0));
-	// Pushe das neue Objekt auf den Stack
-	objects.push(cubeObject);
-
+	initObjects(document);
 
 	/// Setze die restlichen Matrizen ///
     // Set view matrix
@@ -168,26 +113,7 @@ function render()
 	requestAnimFrame(render);
 }
 
-// Initiiert WebGL mit dem ganzen Standardkram
-function initWebGL(document)
-{
-	// Get canvas and setup webGL
-	canvas = document.getElementById("gl-canvas");
-    
-    
-	gl = WebGLUtils.setupWebGL(canvas);
-	if (!gl) { alert("WebGL isn't available"); }
-
-	// Configure viewport
-	gl.viewport(0, 0, canvas.width, canvas.height);
-	gl.clearColor(0.6, 0.6, 0.6, 1.0);
-	gl.enable(gl.DEPTH_TEST);
-
-	// Init shader program and bind it
-	program = initShaders(gl, "vertex-shader", "fragment-shader");
-	gl.useProgram(program);
-}
-
+/// HILFSFUNKTIONEN ///
 // Implementation der Quaternionen von Yannic
 function rotateY(radY){
 	var direction = vec3.create();
@@ -211,6 +137,7 @@ function rotateXZ(radXZ){
 	vec3.add(target,eye,direction);
 }
 
+// Bewgt die Objekte in der Sezene
 function moveObjects(){
 
 	// 0.2 ist die Geschwindigkeitsskalierungsvariable
@@ -254,9 +181,64 @@ function moveObjects(){
 	}
 }
 
+// rechnet Winkel in Radianten um
+function toRadians(angle)
+{
+  return (angle * Math.PI / 180);
+}
 
+/// INIT-FUNKTIONEN///
+// Verschiedene Init-Funktionen, die unser Canvas in den Startzustand setzen.
+// Initiiert WebGL mit dem ganzen Standardkram
+function initWebGL(document)
+{
+	// Get canvas and setup webGL
+	canvas = document.getElementById("gl-canvas");
+    
+    
+	gl = WebGLUtils.setupWebGL(canvas);
+	if (!gl) { alert("WebGL isn't available"); }
 
-// Setzt die Listener
+	// Configure viewport
+	gl.viewport(0, 0, canvas.width, canvas.height);
+	gl.clearColor(0.6, 0.6, 0.6, 1.0);
+	gl.enable(gl.DEPTH_TEST);
+
+	// Init shader program and bind it
+	program = initShaders(gl, "vertex-shader", "fragment-shader");
+	gl.useProgram(program);
+}
+
+// Initiiert die Objekte
+function initObjects(document){
+	/// Setze die Objekte ///
+	// Erstelle roten Zylinder
+	var cylinderString = document.getElementById("cylinder").innerHTML;
+	cylinderMesh = new OBJ.Mesh(cylinderString);
+	OBJ.initMeshBuffers(gl, cylinderMesh);
+	
+	cylinderObject = new RenderObject(mat4.create(), vec4.fromValues(1, 0, 0, 1), 
+		cylinderMesh.vertexBuffer, cylinderMesh.indexBuffer, cylinderMesh.normalBuffer);
+	objects.push(cylinderObject);
+	
+	// Erstelle blaue Fläche
+	var cubeString = document.getElementById("cube").innerHTML;
+	cubeMesh = new OBJ.Mesh(cubeString);
+	OBJ.initMeshBuffers(gl, cubeMesh);
+
+	cubeObject = new RenderObject(mat4.create(), vec4.fromValues(0, 0, 1, 1),
+		cubeMesh.vertexBuffer, cubeMesh.indexBuffer, cubeMesh.normalBuffer);	
+	// Skaliere Form unseres Cubes
+	mat4.scale(cubeObject.modelMatrix, cubeObject.modelMatrix, 
+		vec3.fromValues(10,0.1,10));
+	// Bewege Cube auf der Y-Achse nach unten
+	mat4.translate(cubeObject.modelMatrix, cubeObject.modelMatrix,
+		vec3.fromValues(0,-15,0));
+	// Pushe das neue Objekt auf den Stack
+	objects.push(cubeObject);
+}
+
+// Setzt die Listener in das Dokument
 function initListener(document){
 
 	// Bewegung durch WASD
@@ -355,15 +337,6 @@ function initListener(document){
 	    yPosition = e.screenY;
     }	
 }
-
-// rechnet Winkel in Radianten um
-function toRadians(angle)
-{
-  return (angle * Math.PI / 180);
-}
-
-
-
 
 
 // Auskomentierte Funktionen
@@ -581,7 +554,8 @@ function toRadians(angle)
 	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
 */
 
-
+// var earthTexture;
+// var earthImage;
   	/*
   	//Definition der Textur
   	earthTexture = gl.createTexture();
