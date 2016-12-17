@@ -180,10 +180,12 @@ function moveObjects(){
 	// Q
 	if(_keyPressed[4]){
 		rotateY(toRadians(2));
+		_kameraWinkel+= 2;
 	}
 	// E
 	if(_keyPressed[5]){
 		rotateY(toRadians(-2));
+        _kameraWinkel-= 2;
 	}
 }
 
