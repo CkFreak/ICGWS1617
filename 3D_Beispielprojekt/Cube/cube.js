@@ -1,49 +1,55 @@
+// Für WebGL
 var gl;
 var canvas;
 var program;
 
-var eye;
-var target;
-var up;
-
-var angleLog = 0; // Speichert den aktuellen Winkel
-var positions;
-var colors;
-
-var earthTexture;
-var earthImage;
-
-var xPosition;
-var yPosition;
-var _mouseDown = 0;
-var _keyPressed = [false, false, false, false]; // Array für die gedrückten Tasten: W A S D
-
-var positionBuffer;
-var colorBuffer;
-var cubeVerticesNormalBuffer;
-var texBuffer;
-
+// Für die Objekte
 var objects = [];
-
+var modelMatrixLoc;
 var positionLoc;
 var colorLoc;
 
-//var erthTexture;
+// Für die Bewegung
+var _mouseDown = 0;
+// Array für die gedrückten Tasten: W A S D Q E
+var _keyPressed = [false, false, false, false, false, false]; 
+var _kameraWinkel = 0;
+// var eye;
+// var target;
+// var up;
 
-var modelMatrixLoc;
-var modelMatrixLoc2;
-var boden;
-var cube;
-var cube2;
+// var angleLog = 0; // Speichert den aktuellen Winkel
+// var positions;
+// var colors;
 
-var viewMatrixLoc;
-var viewMatrix;
+// var earthTexture;
+// var earthImage;
 
-var projectionMatrixLoc;
-var projectionMatrix;
+// var xPosition;
+// var yPosition;
 
-var normTransCubeMatrixLoc;
-var normTransCubeMatrix;
+// var positionBuffer;
+// var colorBuffer;
+// var cubeVerticesNormalBuffer;
+// var texBuffer;
+
+// 
+
+// //var erthTexture;
+
+// var modelMatrixLoc2;
+// var boden;
+// var cube;
+// var cube2;
+
+// var viewMatrixLoc;
+// var viewMatrix;
+
+// var projectionMatrixLoc;
+// var projectionMatrix;
+
+// var normTransCubeMatrixLoc;
+// var normTransCubeMatrix;
 
 var RenderObject = function(modelMatrix, color, vertexBuffer, indexBuffer, normalBuffer)
 {
@@ -66,87 +72,24 @@ window.onload = function init()
 	cylinderMesh = new OBJ.Mesh(cylinderString);
 	OBJ.initMeshBuffers(gl, cylinderMesh);
 	
-	
 	cylinderObject = new RenderObject(mat4.create(), vec4.fromValues(1, 0, 0, 1), 
 		cylinderMesh.vertexBuffer, cylinderMesh.indexBuffer, cylinderMesh.normalBuffer);
 	objects.push(cylinderObject);
 	
-  	/*
-  	//Definition der Textur
-  	earthTexture = gl.createTexture();
-  	earthImage = new Image();
-  	earthImage.onload = function(){
-  		handleTexture(earthTexture, earthImage);
-  	};
-  	earthImage.src = "earth.jpg";
-  	
+	// Create CubeObject
+	var cubeString = document.getElementById("cube").innerHTML;
+	cubeMesh = new OBJ.Mesh(cubeString);
+	OBJ.initMeshBuffers(gl, cubeMesh);
 
-	// Läd ein Bild auf eine Textur
-	function handleTexture(texture, image){
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-		gl.generateMipmap(gl.TEXTURE_2D);
-	}
+	cubeObject = new RenderObject(mat4.create(), vec4.fromValues(0, 1, 0, 1),
+		cubeMesh.vertexBuffer, cubeMesh.indexBuffer, cubeMesh.normalBuffer);	
+	mat4.scale(cubeObject.modelMatrix, cubeObject.modelMatrix, 
+		vec3.fromValues(10,10,10));
 
-  	// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-
-  	var texCoords = new Float32Array([
-  		0,0,
-  		0,1,
-  		1,1,
-  		1,1,
-  		1,0,
-  		0,0,
-  		0,0,
-  		0,1,
-  		1,1,
-  		1,1,
-  		1,0,
-  		0,0,
-  		0,0,
-  		0,1,
-  		1,1,
-  		1,1,
-  		1,0,
-  		0,0,
-  		0,0,
-  		0,1,
-  		1,1,
-  		1,1,
-  		1,0,
-  		0,0,
-  		0,0,
-  		0,1,
-  		1,1,
-  		1,1,
-  		1,0,
-  		0,0,
-  		0,0,
-  		0,1,
-  		1,1,
-  		1,1,
-  		1,0,
-  		0,0,]);
-  
-  
+	objects.push(cubeObject);
 
 
-    // Lade Texturen 
-    texBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
 
-    var vTexCoords = gl.getAttribLocation(program, "vTexCoords");
-    gl.vertexAttribPointer(vTexCoords, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vTexCoords);
-
-    // Verlinkung mit Shadervariablen
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, earthTexture);
-    var loc = gl.getUniformLocation(program, "map");
-    gl.uniform1i(loc, 0);
-	*/
-	
     // Set view matrix
 	eye = vec3.fromValues(0.0, 0.0, 5.0);
 	target = vec3.fromValues(0.0, 0.0, 0.0);
@@ -185,32 +128,33 @@ window.onload = function init()
 function render()
 {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+	moveObjects();
     
     objects.forEach(function(object){
+		// Setzt die ViewMatrix
+		mat4.lookAt(viewMatrix, eye, target, up);
+		gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
 
+		// Set attributes
+		gl.bindBuffer(gl.ARRAY_BUFFER, cylinderObject.vertexBuffer);
+		gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(positionLoc);
 
-    // Setzt die ViewMatrix
-    mat4.lookAt(viewMatrix, eye, target, up);
-    gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
-    
-    // Set attributes
-	gl.bindBuffer(gl.ARRAY_BUFFER, cylinderObject.vertexBuffer);
-	gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(positionLoc);
+		gl.bindBuffer(gl.ARRAY_BUFFER, cylinderObject.normalBuffer);
+		gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(normalLoc);
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, cylinderObject.normalBuffer);
-	gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(normalLoc);
-	
-	// Set uniforms
-	gl.uniformMatrix4fv(modelMatrixLoc, false, cylinderObject.modelMatrix);
-	gl.uniform4fv(colorLoc, cylinderObject.color);
+		// Set uniforms
+		gl.uniformMatrix4fv(modelMatrixLoc, false, cylinderObject.modelMatrix);
+		gl.uniform4fv(colorLoc, cylinderObject.color);
 
-	// Draw
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cylinderObject.indexBuffer);
-	gl.drawElements(gl.TRIANGLES, cylinderObject.numVertices, gl.UNSIGNED_SHORT, 0);
-    //gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
-    });
+		// Draw
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cylinderObject.indexBuffer);
+		gl.drawElements(gl.TRIANGLES, cylinderObject.numVertices, gl.UNSIGNED_SHORT, 0);
+		//gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
+	});
+
     // Wiederhole den Spaß
 	requestAnimFrame(render);
 }
@@ -227,14 +171,13 @@ function initWebGL(document)
 
 	// Configure viewport
 	gl.viewport(0, 0, canvas.width, canvas.height);
-	gl.clearColor(1.0, 0.9, 1.0, 1.0);
+	gl.clearColor(0.6, 0.6, 0.6, 1.0);
 	gl.enable(gl.DEPTH_TEST);
 
 	// Init shader program and bind it
 	program = initShaders(gl, "vertex-shader", "fragment-shader");
 	gl.useProgram(program);
 }
-
 
 // Implementation der Quaternionen von Yannic
 function rotateY(radY){
@@ -259,7 +202,45 @@ function rotateXZ(radXZ){
 	vec3.add(target,eye,direction);
 }
 
+function moveObjects(){
 
+	// 0.2 ist die Geschwindigkeitsskalierungsvariable
+    var sinx = Math.sin(toRadians(_kameraWinkel)) * 0.2; 
+    var cosx = Math.cos(toRadians(_kameraWinkel)) * 0.2;
+
+	if(_keyPressed[0]){
+		eye[0] -= sinx; 
+        eye[2] -= cosx;
+        target[0] -= sinx;
+        target[2] -= cosx;	
+	}
+	if(_keyPressed[1]){         
+		eye[0] += sinx;
+        eye[2] += cosx;
+        target[0] += sinx;
+        target[2] += cosx;
+    }
+	if(_keyPressed[2]){
+		eye[0] -= cosx;
+        eye[2] += sinx;
+        target[0] -= cosx;
+        target[2] += sinx;
+	}
+	if(_keyPressed[3]){
+		eye[0] += cosx;
+        eye[2] -= sinx;
+        target[0] += cosx;
+        target[2] -= sinx;
+	}
+	// Q
+	if(_keyPressed[4]){
+		rotateY(toRadians(2));
+	}
+	// E
+	if(_keyPressed[5]){
+		rotateY(toRadians(-2));
+	}
+}
 
 // rechnet Winkel in Radianten um
 function toRadians(angle)
@@ -273,45 +254,35 @@ function initListener(document){
 	// Bewegung durch WASD
 	document.onkeydown = function (e)
 	{   
-	    // 0.2 ist die Geschwindigkeitsskalierungsvariable
-	    var sinx = Math.sin(toRadians(angleLog)) * 0.2; 
-	    var cosx = Math.cos(toRadians(angleLog)) * 0.2;
+	    
 	  
 	    switch (e.keyCode)
 	    {
 	        //Translation vor und zurück in Abhängigkeit zu den Winkeln, quasi wie bei Pacman.
 	        case 87:
 	        	_keyPressed[0] = true;
-	            eye[0] -= sinx; 
-	            eye[2] -= cosx;
-	            target[0] -= sinx;
-	            target[2] -= cosx;
-	            break;
-	            
+                break;	            
 	        case 83:
 	        	_keyPressed[1] = true;
-	            eye[0] += sinx;
-	            eye[2] += cosx;
-	            target[0] += sinx;
-	            target[2] += cosx;
 	            break;
 	        
 	        // Translation links rechts in Abhängigkeit der Winkel
 	        case 65:
-	        	_keyPressed[2] = true;
-	            eye[0] -= cosx;
-	            eye[2] += sinx;
-	            target[0] -= cosx;
-	            target[2] += sinx;
+	        	_keyPressed[2] = true;	       
 	            break;
 	            
 	        case 68:
 	        	_keyPressed[3] = true;
-	            eye[0] += cosx;
-	            eye[2] -= sinx;
-	            target[0] += cosx;
-	            target[2] -= sinx;
 	            break;
+
+            // Q
+            case 81:
+            	_keyPressed[4] = true;
+            	break;
+
+        	// E
+        	case 69:
+        		_keyPressed[5] = true;
 	    }
 	}
 
@@ -333,6 +304,16 @@ function initListener(document){
 			case 68:
 				_keyPressed[3] = false;
 				break;
+
+            // Q
+            case 81:
+            	_keyPressed[4] = false;
+            	break;
+
+        	// E
+        	case 69:
+        		_keyPressed[5] = false;
+
 		}
 	}
 
@@ -377,11 +358,20 @@ function initListener(document){
 		    	rotateXZ(toRadians(-xzRotationsWinkel));
 		    }
     	}
-
 	    xPosition = e.screenX;
 	    yPosition = e.screenY;
     }	
-}/*// Specify position and color of the vertices	
+}
+
+
+
+
+
+
+// Auskomentierte Funktionen
+
+
+/*// Specify position and color of the vertices	
 									 
 	positions = new Float32Array([  
 		// Front
@@ -592,3 +582,80 @@ function initListener(document){
 	
 	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
 */
+
+
+  	/*
+  	//Definition der Textur
+  	earthTexture = gl.createTexture();
+  	earthImage = new Image();
+  	earthImage.onload = function(){
+  		handleTexture(earthTexture, earthImage);
+  	};
+  	earthImage.src = "earth.jpg";
+  	
+
+	// Läd ein Bild auf eine Textur
+	function handleTexture(texture, image){
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+		gl.generateMipmap(gl.TEXTURE_2D);
+	}
+
+  	// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+
+  	var texCoords = new Float32Array([
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,]);
+  
+  
+
+
+    // Lade Texturen 
+    texBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+
+    var vTexCoords = gl.getAttribLocation(program, "vTexCoords");
+    gl.vertexAttribPointer(vTexCoords, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vTexCoords);
+
+    // Verlinkung mit Shadervariablen
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, earthTexture);
+    var loc = gl.getUniformLocation(program, "map");
+    gl.uniform1i(loc, 0);
+	*/
