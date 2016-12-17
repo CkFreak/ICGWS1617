@@ -76,6 +76,7 @@ window.onload = function init()
 	positionLoc = gl.getAttribLocation(program, "vPosition");
 	normalLoc = gl.getAttribLocation(program,"vNormal");
 
+
 	render();
 };
 

@@ -5,45 +5,51 @@
 		<title>Zettel 6 - Aufgabe 1</title>
 		
 		<script id="vertex-shader" type="x-shader/x-vertex">
+			// Aktueller Vertex
 			attribute vec4 vPosition;
+			// Farbe des Aktuellen Vertex
 			uniform vec4 vColor;
-			attribute vec4 vNormal;
-			//attribute vec2 vTexCoords;			
-						
+			// Normale des aktuellen Vertex
+			attribute vec4 vNormal;		
+			
+			// Die Modelmatrix für das entsprechende Objekt	
 			uniform mat4 modelMatrix;
+			// Die ViewMatrix für den entsprechenden zustand
 			uniform mat4 viewMatrix;
+			// Die Projektionsmatrix
 			uniform mat4 projectionMatrix;
-		
+			// Transponierte, invertierte Einheitsmatrix
 			uniform mat4 normTransMatrix;
-			//uniform mat4 normTransCube2;
-			//uniform mat4 normTransBoden;
+			
+			// Intensität der einzelnen Lichtquellen, aufgeteilt in einem 
+			// Verhältnis von: 20% ambientem, 50% diffusem und 30% spekularem Licht
+			vec4 ia = vec4(0.2,0.2,0.2,1);
+			vec4 id = vec4(0.5,0.5,0.5,1);
+			vec4 is = vec4(0.7,0.7,0.7,1);
+			
 
-			vec4 ia = vec4(0.25,0.25,0.25,1);
-			vec4 id = vec4(0.25,0.25,0.25,1);
-			vec4 is = vec4(0.5,0.5,0.5,1);
-
-			//vec4 Lpos = (0,0,0,1);
-			//vec4 L = 
-			//vec4 N = normalize(vNormal);
-			//vec4 V = normalize(vec4(0,0,0,1) - vNormal);
-
-
-			//varying vec2 fTexCoords;
+			// Farbe, die an den FragementShader übergeben wird
 			varying vec4 fColor;
+			varying vec4 f_normal;
+
+			// Texturekram aus der Übung
+			//attribute vec2 vTexCoords;
+			//varying vec2 fTexCoords;
 			
 			void main()
 			{
 				gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
-				//fColor = vColor;
-				//Koeffizienten, zur Vereinfachung konstant und alle gleich
+				//fTexCoords = vTexCoords; 
+				
+				//Koeffizienten, zur Vereinfachung konstant
 				vec4 ka = vColor;
 				vec4 kd = vColor;
-				vec4 ks = vec4(1,1,1,1);
+				vec4 ks = vColor;
 				
 				vec4 lichtpos = projectionMatrix * viewMatrix * modelMatrix * 
-					vec4(1,1,0,0);
+					vec4(1,0,0,0);
 				
-				vec4 vertexNormale = projectionMatrix * viewMatrix * modelMatrix * vPosition * normTransMatrix * vNormal;
+				vec4 vertexNormale = projectionMatrix * viewMatrix * modelMatrix *  normTransMatrix * vNormal;
 
 				vec4 l = normalize(lichtpos - gl_Position);
 				vec4 n = normalize(vertexNormale - gl_Position);
@@ -56,23 +62,26 @@
 				vec4 spekular = is * ks * pow(float(max(0.0,dot(r,v))),x);
 
 				fColor = ambient + diffus + spekular; 
-				//fTexCoords = vTexCoords; 
 				
+				f_normal = vNormal;
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
 			precision mediump float;
 			
 			varying vec4 fColor;
-			//varying vec2 fTexCoords;
+			varying vec4 f_normal;
 
+			uniform vec3 u_reverseLightDirection;
+			//varying vec2 fTexCoords;
 			//uniform sampler2D map;
-			
 			void main()
 			{
-				//vec4 texture = texture2D(map,fTexCoords);
-
+				vec4 normal = normalize(f_normal);
+				
 				gl_FragColor = fColor;
+				
+				//vec4 texture = texture2D(map,fTexCoords);
 			}
 		</script>
 
