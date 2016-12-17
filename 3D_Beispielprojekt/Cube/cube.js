@@ -10,13 +10,18 @@ var positionLoc;
 var colorLoc;
 
 // Für die Bewegung
-var _mouseDown = 0;
+var eye;
+var target;
+var up;
+// Tastatursteuerung
 // Array für die gedrückten Tasten: W A S D Q E
 var _keyPressed = [false, false, false, false, false, false]; 
 var _kameraWinkel = 0;
-// var eye;
-// var target;
-// var up;
+// Maussteuerung
+var _mouseDown = 0;
+var xPosition;
+var yPosition;
+
 
 // var angleLog = 0; // Speichert den aktuellen Winkel
 // var positions;
@@ -25,8 +30,7 @@ var _kameraWinkel = 0;
 // var earthTexture;
 // var earthImage;
 
-// var xPosition;
-// var yPosition;
+// 
 
 // var positionBuffer;
 // var colorBuffer;
@@ -67,6 +71,7 @@ window.onload = function init()
 	initWebGL(document);
 	initListener(document);
 
+	/// Setze die Objekte ///
 	// Create CylinderObject
 	var cylinderString = document.getElementById("cylinder").innerHTML;
 	cylinderMesh = new OBJ.Mesh(cylinderString);
@@ -81,15 +86,19 @@ window.onload = function init()
 	cubeMesh = new OBJ.Mesh(cubeString);
 	OBJ.initMeshBuffers(gl, cubeMesh);
 
-	cubeObject = new RenderObject(mat4.create(), vec4.fromValues(0, 1, 0, 1),
+	cubeObject = new RenderObject(mat4.create(), vec4.fromValues(0, 0, 1, 1),
 		cubeMesh.vertexBuffer, cubeMesh.indexBuffer, cubeMesh.normalBuffer);	
+	// Skaliere Form unseres Cubes
 	mat4.scale(cubeObject.modelMatrix, cubeObject.modelMatrix, 
-		vec3.fromValues(10,10,10));
-
+		vec3.fromValues(10,0.1,10));
+	// Bewege Cube auf der Y-Achse nach unten
+	mat4.translate(cubeObject.modelMatrix, cubeObject.modelMatrix,
+		vec3.fromValues(0,-15,0));
+	// Pushe das neue Objekt auf den Stack
 	objects.push(cubeObject);
 
 
-
+	/// Setze die restlichen Matrizen ///
     // Set view matrix
 	eye = vec3.fromValues(0.0, 0.0, 5.0);
 	target = vec3.fromValues(0.0, 0.0, 0.0);
@@ -110,7 +119,7 @@ window.onload = function init()
     
 
 	//Set transformationmatrix for normals
-	normTransMatrix = mat4.create(cube);
+	normTransMatrix = mat4.create();
 	normTransMatrix = mat4.transpose(normTransMatrix,normTransMatrix);
 	normTransMatrix = mat4.invert(normTransMatrix,normTransMatrix);
 
@@ -137,21 +146,21 @@ function render()
 		gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
 
 		// Set attributes
-		gl.bindBuffer(gl.ARRAY_BUFFER, cylinderObject.vertexBuffer);
+		gl.bindBuffer(gl.ARRAY_BUFFER, object.vertexBuffer);
 		gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(positionLoc);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, cylinderObject.normalBuffer);
+		gl.bindBuffer(gl.ARRAY_BUFFER, object.normalBuffer);
 		gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(normalLoc);
 
 		// Set uniforms
-		gl.uniformMatrix4fv(modelMatrixLoc, false, cylinderObject.modelMatrix);
-		gl.uniform4fv(colorLoc, cylinderObject.color);
+		gl.uniformMatrix4fv(modelMatrixLoc, false, object.modelMatrix);
+		gl.uniform4fv(colorLoc, object.color);
 
 		// Draw
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cylinderObject.indexBuffer);
-		gl.drawElements(gl.TRIANGLES, cylinderObject.numVertices, gl.UNSIGNED_SHORT, 0);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object.indexBuffer);
+		gl.drawElements(gl.TRIANGLES, object.numVertices, gl.UNSIGNED_SHORT, 0);
 		//gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
 	});
 
@@ -207,25 +216,28 @@ function moveObjects(){
 	// 0.2 ist die Geschwindigkeitsskalierungsvariable
     var sinx = Math.sin(toRadians(_kameraWinkel)) * 0.2; 
     var cosx = Math.cos(toRadians(_kameraWinkel)) * 0.2;
-
+    // W
 	if(_keyPressed[0]){
 		eye[0] -= sinx; 
         eye[2] -= cosx;
         target[0] -= sinx;
         target[2] -= cosx;	
 	}
+	// S
 	if(_keyPressed[1]){         
 		eye[0] += sinx;
         eye[2] += cosx;
         target[0] += sinx;
         target[2] += cosx;
     }
+    // A
 	if(_keyPressed[2]){
 		eye[0] -= cosx;
         eye[2] += sinx;
         target[0] -= cosx;
         target[2] += sinx;
 	}
+	// D
 	if(_keyPressed[3]){
 		eye[0] += cosx;
         eye[2] -= sinx;
@@ -242,44 +254,34 @@ function moveObjects(){
 	}
 }
 
-// rechnet Winkel in Radianten um
-function toRadians(angle)
-{
-  return (angle * Math.PI / 180);
-}
+
 
 // Setzt die Listener
 function initListener(document){
 
 	// Bewegung durch WASD
-	document.onkeydown = function (e)
-	{   
-	    
-	  
-	    switch (e.keyCode)
-	    {
-	        //Translation vor und zurück in Abhängigkeit zu den Winkeln, quasi wie bei Pacman.
+	document.onkeydown = function (e){ 
+	    switch (e.keyCode){
+	        //W
 	        case 87:
 	        	_keyPressed[0] = true;
                 break;	            
+	        //S
 	        case 83:
 	        	_keyPressed[1] = true;
 	            break;
-	        
-	        // Translation links rechts in Abhängigkeit der Winkel
+	        // A
 	        case 65:
 	        	_keyPressed[2] = true;	       
 	            break;
-	            
+	        // D
 	        case 68:
 	        	_keyPressed[3] = true;
 	            break;
-
             // Q
             case 81:
             	_keyPressed[4] = true;
             	break;
-
         	// E
         	case 69:
         		_keyPressed[5] = true;
@@ -289,38 +291,37 @@ function initListener(document){
 	//gedrückte Taste wird nicht mehr gedrückt
 	document.onkeyup = function(e){
 		switch(e.keyCode){
+			// W
 			case 87:
 				_keyPressed[0] = false;
 				break;
-			
+			// S
 			case 83:
 				_keyPressed[1] = false;
 				break;
-
+			// A
 			case 65:
 				_keyPressed[2] = false;
 				break;
-
+			// D
 			case 68:
 				_keyPressed[3] = false;
 				break;
-
             // Q
             case 81:
             	_keyPressed[4] = false;
             	break;
-
         	// E
         	case 69:
         		_keyPressed[5] = false;
-
+        		break;
 		}
 	}
 
 	// Setzt das Feld _mousedown auf true 
 	document.onmousedown = function(e){
 		++_mouseDown;
-	}     
+	}
 
 	// Setzt das Feld _mousedown wieder auf false
 	document.onmouseup = function(e){
@@ -328,32 +329,24 @@ function initListener(document){
 	}
 
 	// Bewegt die Kamera auf der x-Ebene, wenn _mouseDown true ist.
-	document.onmousemove = function (e)
-	{
+	document.onmousemove = function (e){
 		// Gibt den Winkel an, um den rotiert werden soll
 		var xzRotationsWinkel = 0.5;
 		var yRotationsWinkel = 2;
 
-		if(_mouseDown)
-		{
-		    if (e.screenX > xPosition )
-		    {
+		if(_mouseDown){
+		    if (e.screenX > xPosition ){
 				rotateY(toRadians(yRotationsWinkel));
 		    }
-		    if (e.screenX < xPosition)
-		    {
+		    if (e.screenX < xPosition){
 		       	rotateY(toRadians(-yRotationsWinkel));
 		    }
-
 		    // Rotation um x-Achse
-		    if(e.screenY > yPosition)
-		    {
+		    if(e.screenY > yPosition){
 		    	//console.log(e.screenY);
 		    	rotateXZ(toRadians(xzRotationsWinkel));
 		    }
-
-		    if(e.screenY < yPosition)
-		    {
+		    if(e.screenY < yPosition){
 		    	//console.log(e.screenY);
 		    	rotateXZ(toRadians(-xzRotationsWinkel));
 		    }
@@ -363,6 +356,11 @@ function initListener(document){
     }	
 }
 
+// rechnet Winkel in Radianten um
+function toRadians(angle)
+{
+  return (angle * Math.PI / 180);
+}
 
 
 
