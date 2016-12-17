@@ -23,7 +23,7 @@ var colorBuffer;
 var cubeVerticesNormalBuffer;
 var texBuffer;
 
-var cylinderObject
+var objects = [];
 
 var positionLoc;
 var colorLoc;
@@ -61,16 +61,17 @@ window.onload = function init()
 	initWebGL(document);
 	initListener(document);
 
+	// Create CylinderObject
 	var cylinderString = document.getElementById("cylinder").innerHTML;
 	cylinderMesh = new OBJ.Mesh(cylinderString);
 	OBJ.initMeshBuffers(gl, cylinderMesh);
 	
-	// Create object
+	
 	cylinderObject = new RenderObject(mat4.create(), vec4.fromValues(1, 0, 0, 1), 
 		cylinderMesh.vertexBuffer, cylinderMesh.indexBuffer, cylinderMesh.normalBuffer);
-
+	objects.push(cylinderObject);
 	
-  	
+  	/*
   	//Definition der Textur
   	earthTexture = gl.createTexture();
   	earthImage = new Image();
@@ -144,7 +145,8 @@ window.onload = function init()
     gl.bindTexture(gl.TEXTURE_2D, earthTexture);
     var loc = gl.getUniformLocation(program, "map");
     gl.uniform1i(loc, 0);
-
+	*/
+	
     // Set view matrix
 	eye = vec3.fromValues(0.0, 0.0, 5.0);
 	target = vec3.fromValues(0.0, 0.0, 0.0);
@@ -184,6 +186,9 @@ function render()
 {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
+    objects.forEach(function(object){
+
+
     // Setzt die ViewMatrix
     mat4.lookAt(viewMatrix, eye, target, up);
     gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
@@ -205,7 +210,7 @@ function render()
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cylinderObject.indexBuffer);
 	gl.drawElements(gl.TRIANGLES, cylinderObject.numVertices, gl.UNSIGNED_SHORT, 0);
     //gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
-    
+    });
     // Wiederhole den Spaß
 	requestAnimFrame(render);
 }

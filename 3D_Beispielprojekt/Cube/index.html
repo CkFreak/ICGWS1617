@@ -18,9 +18,9 @@
 			//uniform mat4 normTransCube2;
 			//uniform mat4 normTransBoden;
 
-			vec4 ia = vec4(0,0,0,1);
-			vec4 id = vec4(1,1,1,1);
-			vec4 is = vec4(0,0,0,1);
+			vec4 ia = vec4(0.8,0,0,1);
+			vec4 id = vec4(0.8,0,0,1);
+			vec4 is = vec4(0.8,0,0,1);
 
 			//vec4 Lpos = (0,0,0,1);
 			//vec4 L = 
@@ -38,7 +38,7 @@
 				//Koeffizienten, zur Vereinfachung konstant und alle gleich
 				vec4 ka = vColor;
 				vec4 kd = vColor;
-				vec4 ks = vColor;
+				vec4 ks = vec4(1,1,1,1);
 				
 				vec4 lichtpos = projectionMatrix * viewMatrix * modelMatrix * 
 					vec4(1,1,0,0);
