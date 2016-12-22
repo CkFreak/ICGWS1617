@@ -28,13 +28,13 @@
             varying vec4 fPosition;
 
 			// Texturekram aus der Übung
-			//attribute vec2 vTexCoords;
-			//varying vec2 fTexCoords;
+			attribute vec2 vTexCoords;
+			varying vec2 fTexCoords;
 			
 			void main()
 			{
 				gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
-				//fTexCoords = vTexCoords; 
+				fTexCoords = vTexCoords; 
 				
 				fColor = vColor;
 				transNormal = normTransMatrix * vNormal;
@@ -54,8 +54,8 @@
             
 
 			uniform vec3 u_reverseLightDirection;
-			//varying vec2 fTexCoords;
-			//uniform sampler2D map;
+			varying vec2 fTexCoords;
+			uniform sampler2D map;
 			void main()
 			{
                 vec4 ka = fColor;
@@ -73,9 +73,11 @@
 				vec4 f_diffus = id * kd * max(0.0, dot(n,l));
 				vec4 f_spekular = is * ks * pow(float(max(0.0,dot(r,v))),x);
 				
-				gl_FragColor = f_ambient + f_diffus + f_spekular;
+				vec4 texture = texture2D(map,fTexCoords);
 				
-				//vec4 texture = texture2D(map,fTexCoords);
+                gl_FragColor = texture;
+                //gl_FragColor = f_ambient + f_diffus + f_spekular;
+				
 			}
 		</script>
 

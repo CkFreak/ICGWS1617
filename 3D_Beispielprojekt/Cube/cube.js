@@ -9,8 +9,14 @@ var modelMatrixLoc;
 var positionLoc;
 var colorLoc;
 var viewMatrixLoc;
+var vTexCoords;
+var loc;
 var projectionMatrixLoc;
 var normTransMatrixLoc;
+
+// Für die Texturen
+var sandTexture;
+var sandImage;
 
 // Für die Bewegung
 var eye;
@@ -26,7 +32,7 @@ var xPosition;
 var yPosition;
 
 
-var RenderObject = function(modelMatrix, color, vertexBuffer, indexBuffer, normalBuffer)
+var RenderObject = function(modelMatrix, color, vertexBuffer, indexBuffer, normalBuffer, textureBuffer)
 {
 	this.modelMatrix = modelMatrix;
 	this.color = color;
@@ -34,6 +40,7 @@ var RenderObject = function(modelMatrix, color, vertexBuffer, indexBuffer, norma
 	this.indexBuffer = indexBuffer;
 	this.numVertices = indexBuffer.numItems;
 	this.normalBuffer = normalBuffer;
+    this.textureBuffer = textureBuffer;
 
 }
 
@@ -71,7 +78,77 @@ window.onload = function init()
 	colorLoc = gl.getUniformLocation(program, "vColor");
 	positionLoc = gl.getAttribLocation(program, "vPosition");
 	normalLoc = gl.getAttribLocation(program,"vNormal");
+    vTexCoords = gl.getAttribLocation(program, "vTexCoords");
+    loc = gl.getUniformLocation(program, "map");
+    
 
+  	
+  	//Definition der Textur
+  	sandTexture = gl.createTexture();
+  	sandImage = new Image();
+  	sandImage.onload = function(){
+  		handleTexture(sandTexture, sandImage);
+  	};
+  	sandImage.src = "sand_diffuse.png";
+  	
+
+	// Läd ein Bild auf eine Textur
+	function handleTexture(texture, image){
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+		gl.generateMipmap(gl.TEXTURE_2D);
+	}
+
+  	
+
+  /*	var texCoords = new Float32Array([
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0]);*/
+  
+  
+
+
+    // Lade Texturen 
+   
+
+ 
+    
+
+    
 
 	render();
 };
@@ -95,6 +172,11 @@ function render()
 		gl.bindBuffer(gl.ARRAY_BUFFER, object.normalBuffer);
 		gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(normalLoc);
+        
+         gl.bindBuffer(gl.ARRAY_BUFFER, object.textureBuffer);
+         gl.vertexAttribPointer(vTexCoords, 2, gl.FLOAT, false, 0, 0);
+         gl.enableVertexAttribArray(vTexCoords);
+         //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
 
 		// Set uniforms
 		gl.uniformMatrix4fv(modelMatrixLoc, false, object.modelMatrix);
@@ -107,6 +189,12 @@ function render()
         mat4.invert(normTransMatrix, normTransMatrix);
         gl.uniformMatrix4fv(normTransMatrixLoc, false, normTransMatrix);
         
+        // Verlinkung mit Shadervariablen
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, sandTexture);
+        
+        gl.uniform1i(loc, 0);
+
 
 		// Draw
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object.indexBuffer);
@@ -226,7 +314,7 @@ function initObjects(document){
 	OBJ.initMeshBuffers(gl, cylinderMesh);
 	
 	cylinderObject = new RenderObject(mat4.create(), vec4.fromValues(1, 0, 0, 1), 
-		cylinderMesh.vertexBuffer, cylinderMesh.indexBuffer, cylinderMesh.normalBuffer);
+		cylinderMesh.vertexBuffer, cylinderMesh.indexBuffer, cylinderMesh.normalBuffer, cylinderMesh.textureBuffer);
 	objects.push(cylinderObject);
 	
 	// Erstelle blaue Fläche
@@ -235,7 +323,7 @@ function initObjects(document){
 	OBJ.initMeshBuffers(gl, cubeMesh);
 
 	cubeObject = new RenderObject(mat4.create(), vec4.fromValues(0, 0, 1, 1),
-		cubeMesh.vertexBuffer, cubeMesh.indexBuffer, cubeMesh.normalBuffer);	
+		cubeMesh.vertexBuffer, cubeMesh.indexBuffer, cubeMesh.normalBuffer, cubeMesh.textureBuffer);	
 	// Skaliere Form unseres Cubes
 	mat4.scale(cubeObject.modelMatrix, cubeObject.modelMatrix, 
 		vec3.fromValues(10,0.1,10));
@@ -562,11 +650,11 @@ function initListener(document){
     boden = mat4.scale(boden, boden, vec3.fromValues(3.0, 0, 3.0));
 	
 	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
-*/
+
 
 // var earthTexture;
 // var earthImage;
-  	/*
+  	
   	//Definition der Textur
   	earthTexture = gl.createTexture();
   	earthImage = new Image();
