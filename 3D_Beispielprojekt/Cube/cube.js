@@ -1,277 +1,59 @@
+// Für WebGL
 var gl;
 var canvas;
+var program;
+
+// Für die Objekte
+var objects = [];
+var modelMatrixLoc;
+var positionLoc;
+var colorLoc;
+var viewMatrixLoc;
+var projectionMatrixLoc;
+var normTransMatrixLoc;
+
+//Für die Textur
+var texBuffer;
+var texCoords;
+var vTexCoords;
+var earthImage;
+var earthTexture;
+
+// Für die Bewegung
 var eye;
 var target;
 var up;
+// Tastatursteuerung
+// Array für die gedrückten Tasten: W A S D Q E
+var _keyPressed = [false, false, false, false, false, false]; 
+var _kameraWinkel = 0;
+// Maussteuerung
+var _mouseDown = 0;
+var xPosition;
+var yPosition;
 
-var angleLog = 0; // Speichert den aktuellen Winkel
-var angleR; 
-var positions;
-var colors;
-var normals;
 
-var positionBuffer;
-var colorBuffer;
-var normalsBuffer;
-var normal;
+var RenderObject = function(modelMatrix, color, vertexBuffer, indexBuffer, normalBuffer)
+{
+	this.modelMatrix = modelMatrix;
+	this.color = color;
+	this.vertexBuffer = vertexBuffer;
+	this.indexBuffer = indexBuffer;
+	this.numVertices = indexBuffer.numItems;
+	this.normalBuffer = normalBuffer;
 
-var modelMatrixLoc;
-var modelMatrixLoc2;
-var boden;
-var cube;
-var cube2;
-
-var viewMatrixLoc;
-var viewMatrix;
-
-var projectionMatrixLoc;
-var projectionMatrix;
-
-//Cube Faces 
-var frontFace = [                   -0.5, -0.5,  0.5,
-								     0.5, -0.5,  0.5,
-								     0.5,  0.5,  0.5,
-										
-									 0.5,  0.5,  0.5,
-									-0.5,  0.5,  0.5,
-									-0.5, -0.5,  0.5];
-
-var rightFace = [                    0.5,  0.5,  0.5,
-									 0.5, -0.5,  0.5,
-									 0.5, -0.5, -0.5,
-										
-									 0.5, -0.5, -0.5,
-									 0.5,  0.5, -0.5,
-									 0.5,  0.5,  0.5];
-
-var backFace = [                    -0.5, -0.5, -0.5,
-									 0.5, -0.5, -0.5,
-									 0.5,  0.5, -0.5,
-										
-									 0.5,  0.5, -0.5,
-									-0.5,  0.5, -0.5,
-									-0.5, -0.5, -0.5];
-
-var leftFace = [                    -0.5,  0.5,  0.5,
-									-0.5, -0.5,  0.5,
-									-0.5, -0.5, -0.5,
-										
-									-0.5, -0.5, -0.5,
-									-0.5,  0.5, -0.5,
-									-0.5,  0.5,  0.5];
-
-var bottomFace = [                  -0.5, -0.5,  0.5,
-									 0.5, -0.5,  0.5,
-									 0.5, -0.5, -0.5,
-										
-									 0.5, -0.5, -0.5,
-									-0.5, -0.5, -0.5,
-									-0.5, -0.5,  0.5];
-
-var topFace = [                     -0.5,  0.5,  0.5,
-									 0.5,  0.5,  0.5,
-									 0.5,  0.5, -0.5,
-										
-									 0.5,  0.5, -0.5,
-									-0.5,  0.5, -0.5,
-									-0.5,  0.5,  0.5];
+}
 
 window.onload = function init()
 {
-	// Get canvas and setup webGL
-	
-	canvas = document.getElementById("gl-canvas");
-    
-    //setzt die größe des Canvas / viewports auf Fenster Größe (nur zu Testzwecken)
-    canvas.width = document.body.clientWidth;
-    canvas.heigth = document.body.clientHeight;
-    
-	gl = WebGLUtils.setupWebGL(canvas);
-	if (!gl) { alert("WebGL isn't available"); }
+	initWebGL(document);
+	initListener(document);
+	initObjects(document);
+    initTexture1(document);
+    initTexture2(document);
 
-	// Specify position and color of the vertices
-	
-									 // Front
-	positions = new Float32Array([  -0.5, -0.5,  0.5,
-								     0.5, -0.5,  0.5,
-								     0.5,  0.5,  0.5,
-										
-									 0.5,  0.5,  0.5,
-									-0.5,  0.5,  0.5,
-									-0.5, -0.5,  0.5,
-										
-									 // Right
-									 0.5,  0.5,  0.5,
-									 0.5, -0.5,  0.5,
-									 0.5, -0.5, -0.5,
-										
-									 0.5, -0.5, -0.5,
-									 0.5,  0.5, -0.5,
-									 0.5,  0.5,  0.5,
-										
-									 // Back
-									-0.5, -0.5, -0.5,
-									 0.5, -0.5, -0.5,
-									 0.5,  0.5, -0.5,
-										
-									 0.5,  0.5, -0.5,
-									-0.5,  0.5, -0.5,
-									-0.5, -0.5, -0.5,
-										
-									 // Left
-									-0.5,  0.5,  0.5,
-									-0.5, -0.5,  0.5,
-									-0.5, -0.5, -0.5,
-										
-									-0.5, -0.5, -0.5,
-									-0.5,  0.5, -0.5,
-									-0.5,  0.5,  0.5,
-										
-									 // Bottom
-									-0.5, -0.5,  0.5,
-									 0.5, -0.5,  0.5,
-									 0.5, -0.5, -0.5,
-										
-									 0.5, -0.5, -0.5,
-									-0.5, -0.5, -0.5,
-									-0.5, -0.5,  0.5,
-										
-									 // Top
-									-0.5,  0.5,  0.5,
-									 0.5,  0.5,  0.5,
-									 0.5,  0.5, -0.5,
-										
-									 0.5,  0.5, -0.5,
-									-0.5,  0.5, -0.5,
-									-0.5,  0.5,  0.5
-								]); 
-										
-									// Front
-	colors = new Float32Array([     0, 0, 1, 1,
-									0, 0, 1, 1,
-									0, 0, 1, 1,
-									0, 0, 1, 1,
-									0, 0, 1, 1,
-									0, 0, 1, 1,
-									
-									// Right
-									0, 1, 0, 1, 
-									0, 1, 0, 1,
-									0, 1, 0, 1,
-									0, 1, 0, 1,
-									0, 1, 0, 1,
-									0, 1, 0, 1,
-									
-									// Back
-									1, 0, 0, 1,
-									1, 0, 0, 1,
-									1, 0, 0, 1,
-									1, 0, 0, 1,
-									1, 0, 0, 1,
-									1, 0, 0, 1,
-									
-									// Left
-									1, 1, 0, 1, 
-									1, 1, 0, 1,
-									1, 1, 0, 1,
-									1, 1, 0, 1,
-									1, 1, 0, 1,
-									1, 1, 0, 1,
-									
-									// Bottom
-									1, 0, 1, 1, 
-									1, 0, 1, 1,
-									1, 0, 1, 1,
-									1, 0, 1, 1,
-									1, 0, 1, 1,
-									1, 0, 1, 1,
-									
-									// Top
-									0, 1, 1, 1, 
-									0, 1, 1, 1,
-									0, 1, 1, 1,
-									0, 1, 1, 1,
-									0, 1, 1, 1,
-									0, 1, 1, 1
-								]);
-// TO - DO Normalen definieren.
-    normals = new Float32Array([]);
-    
-    // rechnet Winkel in Radianten um
-    function toRadians(angle)
-  {
-      return (angle * Math.PI / 180);
-  }
-   
-
-	// Configure viewport
-
-	gl.viewport(0, 0, canvas.width, canvas.height);
-	gl.clearColor(1.0, 1.0, 1.0, 1.0);
-	gl.enable(gl.DEPTH_TEST);
-
-	// Init shader program and bind it
-
-	var program = initShaders(gl, "vertex-shader", "fragment-shader");
-	gl.useProgram(program);
-
-    // Load positions into the GPU and associate shader variables
-
-	positionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-
-	var vPosition = gl.getAttribLocation(program, "vPosition");
-	gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(vPosition);
-
-	// Load colors into the GPU and associate shader variables
-	
-	colorBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-	
-	var vColor = gl.getAttribLocation(program, "vColor");
-	gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(vColor);
-    
-    // Load normals into the GPU and associate shader variables
-    
-    generateAllNormals();
-        console.log(normals);
-    
-    var normalsBuffer = gl.createBuffer(); 
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
-    
-    var vNormal = gl.getAttribLocation(program, "vNormal");
-    gl.vertexAttribPointer(vNormal, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vNormal);
-	
-	// Set model matrix für die Objekte
-	
-	cube = new Float32Array([1, 0, 0, 0,
-									0, 1, 0, 0,
-									0, 0, 1, 0,
-									0.6, 0, 0, 1]);
-    
-    cube2 = new Float32Array([1, 0, 0, 0,
-									0, 1, 0, 0,
-									0, 0, 1, 0,
-									-0.6, 0, 0, 1]);
-    
-    boden = new Float32Array([1, 0, 0, 0,
-									0, 1, 0, 0,
-									0, 0, 1, 0,
-									0, -1, 0, 1]);
-    
-    // macht aus einem Cube den Boden via scale
-    boden = mat4.scale(boden, boden, vec3.fromValues(3.0, 0.01, 3.0));
-	
-	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
-
+	/// Setze die restlichen Matrizen ///
     // Set view matrix
-
 	eye = vec3.fromValues(0.0, 0.0, 5.0);
 	target = vec3.fromValues(0.0, 0.0, 0.0);
 	up = vec3.fromValues(0.0, 1.0, 0.0);
@@ -283,148 +65,669 @@ window.onload = function init()
 	gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
 
     // Set projection matrix
-
 	projectionMatrix = mat4.create();
 	mat4.perspective(projectionMatrix, Math.PI * 0.25, canvas.width / canvas.height, 0.5, 100);
 
 	projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
 	gl.uniformMatrix4fv(projectionMatrixLoc, false, projectionMatrix);
     
-    // Bewegung durch WASD
-    document.onkeydown = function (e)
-    {
-        var key = e.keyCode;
-        
-        // 0.2 ist die Geschwindigkeitsskalierungsvariable
-        var sinx = Math.sin(toRadians(angleLog)) * 0.2; 
-        var cosx = Math.cos(toRadians(angleLog)) * 0.2;
-        switch (key)
-        {
-            //Translation vor und zurück in Abhängigkeit zu den Winkeln, quasi wie bei Pacman.
-            case 87:
-                eye[0] -= sinx; 
-                eye[2] -= cosx;
-                target[0] -= sinx;
-                target[2] -= cosx;
-                break;
-                
-            case 83:
-                eye[0] += sinx;
-                eye[2] += cosx;
-                target[0] += sinx;
-                target[2] += cosx;
-                break;
-            
-            // Translation links rechts in Abhängigkeit der Winkel, habs durch ausprobieren herausgefunden. FRAGT NICHT WARUM AMK!    
-            case 65:
-                eye[0] -= cosx;
-                eye[2] += sinx;
-                target[0] -= cosx;
-                target[2] += sinx;
-                
-                break;
-                
-            case 68:
-                eye[0] += cosx;
-                eye[2] -= sinx;
-                target[0] += cosx;
-                target[2] -= sinx;
-                break;
-        }
-    }
-    
-    // linke Maustaste addiert je nach Position im Canvas (links oder rechts) einen Winkel.
-    document.onmousedown = function (e)
-    {
-        
-        if (e.clientX > canvas.width / 2)
-        {
-                angleR = 0;
-                angleR -= 10;
-        }
-        else if (e.clientY < canvas.width / 2)
-        {
-                angleR = 0;
-                angleR = 10;         
-        }
-        
-        //die eigentliche Rotation
-        rotateCam(angleR);     
-    }
-    
-    // http://glmatrix.net/docs/vec3.js.html#line629    -> rotiert um Y Achse: Parameter (output, input, mittelpunkt, angle)!
-    function rotateCam(angle)
-    {
-        angleLog += angle;
-        var angles = toRadians(angle);
-        vec3.rotateY(target, target, eye, angles);
-    }
-        
-    
+
+	//Set transformationmatrix for normals
+	normTransMatrix = mat4.create();
+    normTransMatrixLoc = gl.getUniformLocation(program, "normTransMatrix");
+	
+	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
+	colorLoc = gl.getUniformLocation(program, "vColor");
+	positionLoc = gl.getAttribLocation(program, "vPosition");
+	normalLoc = gl.getAttribLocation(program,"vNormal");
+
+
 	render();
 };
 
 function render()
 {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    mat4.lookAt(viewMatrix, eye, target, up);
+
+	moveObjects();
     
-    gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
-    gl.uniformMatrix4fv(modelMatrixLoc, false, cube);
+    objects.forEach(function(object){
+		// Setzt die ViewMatrix
+		mat4.lookAt(viewMatrix, eye, target, up);
+		gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
+
+		// Set attributes
+		gl.bindBuffer(gl.ARRAY_BUFFER, object.vertexBuffer);
+		gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(positionLoc);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, object.normalBuffer);
+		gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(normalLoc);
+        
+        var texSpeicher = [];
+        for(i = 0; i < object.numVertices; i++)
+            {
+                texSpeicher.push(1,1);
+  		        texSpeicher.push(1,0);
+  		        texSpeicher.push(0,0);
+  		        texSpeicher.push(1,1);
+  		        texSpeicher.push(0,1);
+  		        texSpeicher.push(0,0);
+            }
+        texCoords = new Float32Array(texSpeicher);
+        
+            
+        
+        // Lade Texturkoordinaten in den Buffer
+        texBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+
+        vTexCoords = gl.getAttribLocation(program, "vTexCoords");
+        gl.vertexAttribPointer(vTexCoords, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(vTexCoords);
+
+        // Verlinkung mit Shadervariablen
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, earthTexture);
+        var loc = gl.getUniformLocation(program, "map");
+        gl.uniform1i(loc, 0);
+        
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, bumpTexture);
+        var loc2 = gl.getUniformLocation(program, "bump");
+        gl.uniform1i(loc2, 1);
+        
+//        // 2. Textur
+//        var tex2Buffer = gl.createBuffer();
+//        gl.bindBuffer(gl.ARRAY_BUFFER, tex2Buffer);
+//        gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+//
+//        vTexCoords = gl.getAttribLocation(program, "vTexCoords");
+//        gl.vertexAttribPointer(vTexCoords, 2, gl.FLOAT, false, 0, 0);
+//        gl.enableVertexAttribArray(vTexCoords);
+//        
+//
+//        gl.bindTexture(gl.TEXTURE_2D, bumpTexture);
+//        var loc2 = gl.getUniformLocation(program, "bump");
+//        gl.uniform1i(loc2, 0);
+        
+        
+
+		// Set uniforms
+		gl.uniformMatrix4fv(modelMatrixLoc, false, object.modelMatrix);
+		gl.uniform4fv(colorLoc, object.color);
+        
+        // Berechnet die transponierte und invertierte Normalentransformationsmatrix!
+        mat4.multiply(normTransMatrix, projectionMatrix, viewMatrix);
+        mat4.multiply(normTransMatrix, object.modelMatrix, normTransMatrix);
+        mat4.transpose(normTransMatrix, normTransMatrix);
+        mat4.invert(normTransMatrix, normTransMatrix);
+        gl.uniformMatrix4fv(normTransMatrixLoc, false, normTransMatrix);
+        
+
+		// Draw
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object.indexBuffer);
+		gl.drawElements(gl.TRIANGLES, object.numVertices, gl.UNSIGNED_SHORT, 0);
+		//gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
+	});
     
-	gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
-    gl.uniformMatrix4fv(modelMatrixLoc, false, cube2);
-    
-    gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
-    
-    gl.uniformMatrix4fv(modelMatrixLoc, false, boden);
-    gl.drawArrays(gl.TRIANGLES, 0, positions.length/3);
-    
+
+    // Wiederhole den Spaß
 	requestAnimFrame(render);
 }
 
-function calculateNormalVector(positionVertices)
-{
-    var x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
-    
-    x1 = positionVertices[0];
-    y1 = positionVertices[1];
-    z1 = positionVertices[2];
-    x2 = positionVertices[3];
-    y2 = positionVertices[4];
-    z2 = positionVertices[5];
-    x3 = positionVertices[6];
-    y3 = positionVertices[7];
-    z3 = positionVertices[8];
-    x4 = positionVertices[12];
-    y4 = positionVertices[13];
-    z4 = positionVertices[14];
-    
-    var firstVector = vec3.fromValues((x2-x1), (y2-y1), (z2-z1));
-    var secondVector = vec3.fromValues((x4-x1), (y4-y1), (z4-z1));
-    
-    var normalVector =
-        vec3.fromValues((y2-y1)*(z4-z1)-(z2-z1)*(y4-y1), -(x2-x1)*(z4-z1)+(z2-z1)*(x4-x1), (x2-x1)*(y4-y1)-(y2-y1)*(x4-x1));
-    
-    
-    return normalVector;
+/// HILFSFUNKTIONEN ///
+// Implementation der Quaternionen von Yannic
+function rotateY(radY){
+	var direction = vec3.create();
+	vec3.subtract(direction,target,eye);
+	var q = quat.create();
+	quat.setAxisAngle(q,up,radY);
+	vec3.transformQuat(direction,direction,q);
+	vec3.add(target,eye,direction);
 }
 
-function generateAllNormals()
-{
-    var allFaces = [frontFace, rightFace, backFace, leftFace, bottomFace, topFace];
-    var array = [];
-    for (var i = 0; i < 6; ++i)
-        {
-            var a = calculateNormalVector(allFaces[i]);
-            for (var j = 0; j < 6 ; ++j)
-            {
-                array.push(a[0]);
-                array.push(a[1]);
-                array.push(a[2]);
-            }
-            
-                
-        }
-    normals = new Float32Array(array);
+function rotateXZ(radXZ){
+	var direction = vec3.create();
+	vec3.subtract(direction,target,eye);
+	var strafeDirection = vec3.create();
+	vec3.cross(strafeDirection,direction,up);
+	var upDirection = vec3.create();
+	vec3.copy(upDirection,up);
+	var q = quat.create();
+	quat.setAxisAngle(q,strafeDirection,radXZ);
+	vec3.transformQuat(direction,direction,q);
+	vec3.add(target,eye,direction);
 }
+
+// Bewgt die Objekte in der Sezene
+function moveObjects(){
+
+	// 0.2 ist die Geschwindigkeitsskalierungsvariable
+    var sinx = Math.sin(toRadians(_kameraWinkel)) * 0.2; 
+    var cosx = Math.cos(toRadians(_kameraWinkel)) * 0.2;
+    // W
+	if(_keyPressed[0]){
+		eye[0] -= sinx; 
+        eye[2] -= cosx;
+        target[0] -= sinx;
+        target[2] -= cosx;	
+	}
+	// S
+	if(_keyPressed[1]){         
+		eye[0] += sinx;
+        eye[2] += cosx;
+        target[0] += sinx;
+        target[2] += cosx;
+    }
+    // A
+	if(_keyPressed[2]){
+		eye[0] -= cosx;
+        eye[2] += sinx;
+        target[0] -= cosx;
+        target[2] += sinx;
+	}
+	// D
+	if(_keyPressed[3]){
+		eye[0] += cosx;
+        eye[2] -= sinx;
+        target[0] += cosx;
+        target[2] -= sinx;
+	}
+	// Q
+	if(_keyPressed[4]){
+		rotateY(toRadians(2));
+		_kameraWinkel+= 2;
+	}
+	// E
+	if(_keyPressed[5]){
+		rotateY(toRadians(-2));
+        _kameraWinkel-= 2;
+	}
+}
+
+// rechnet Winkel in Radianten um
+function toRadians(angle)
+{
+  return (angle * Math.PI / 180);
+}
+
+/// INIT-FUNKTIONEN///
+// Verschiedene Init-Funktionen, die unser Canvas in den Startzustand setzen.
+// Initiiert WebGL mit dem ganzen Standardkram
+function initTexture1(document)
+{
+    earthTexture = gl.createTexture();
+  	earthImage = new Image();
+  	earthImage.onload = function(){
+  		handleTexture(earthTexture, earthImage);
+  	};
+  	earthImage.src = "earth.png";
+}
+
+function initTexture2(document)
+{
+    bumpTexture = gl.createTexture();
+    bumpImage = new Image();
+    bumpImage.onload = function()
+    {
+        handleTexture(bumpTexture, bumpImage);
+    }
+    bumpImage.src = "bumpmap.png";
+  	
+}
+
+// Läd ein Bild auf eine Textur
+function handleTexture(texture, image)
+{
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+		gl.generateMipmap(gl.TEXTURE_2D);
+}
+
+function initWebGL(document)
+{
+	// Get canvas and setup webGL
+	canvas = document.getElementById("gl-canvas");
+    
+    
+	gl = WebGLUtils.setupWebGL(canvas);
+	if (!gl) { alert("WebGL isn't available"); }
+
+	// Configure viewport
+	gl.viewport(0, 0, canvas.width, canvas.height);
+	gl.clearColor(0.6, 0.6, 0.6, 1.0);
+	gl.enable(gl.DEPTH_TEST);
+
+	// Init shader program and bind it
+	program = initShaders(gl, "vertex-shader", "fragment-shader");
+	gl.useProgram(program);
+}
+
+// Initiiert die Objekte
+function initObjects(document){
+	/// Setze die Objekte ///
+	// Erstelle roten Zylinder
+	var cylinderString = document.getElementById("cylinder").innerHTML;
+	cylinderMesh = new OBJ.Mesh(cylinderString);
+	OBJ.initMeshBuffers(gl, cylinderMesh);
+	
+	cylinderObject = new RenderObject(mat4.create(), vec4.fromValues(1, 0, 0, 1), 
+		cylinderMesh.vertexBuffer, cylinderMesh.indexBuffer, cylinderMesh.normalBuffer);
+	objects.push(cylinderObject);
+	
+	// Erstelle blaue Fläche
+	var cubeString = document.getElementById("cube").innerHTML;
+	cubeMesh = new OBJ.Mesh(cubeString);
+	OBJ.initMeshBuffers(gl, cubeMesh);
+
+	cubeObject = new RenderObject(mat4.create(), vec4.fromValues(0, 0, 1, 1),
+		cubeMesh.vertexBuffer, cubeMesh.indexBuffer, cubeMesh.normalBuffer);	
+	// Skaliere Form unseres Cubes
+	mat4.scale(cubeObject.modelMatrix, cubeObject.modelMatrix, 
+		vec3.fromValues(10,0.1,10));
+	// Bewege Cube auf der Y-Achse nach unten
+	mat4.translate(cubeObject.modelMatrix, cubeObject.modelMatrix,
+		vec3.fromValues(0,-13,0));
+	// Pushe das neue Objekt auf den Stack
+	objects.push(cubeObject);
+}
+
+// Setzt die Listener in das Dokument
+function initListener(document){
+
+	// Bewegung durch WASD
+	document.onkeydown = function (e){ 
+	    switch (e.keyCode){
+	        //W
+	        case 87:
+	        	_keyPressed[0] = true;
+                break;	            
+	        //S
+	        case 83:
+	        	_keyPressed[1] = true;
+	            break;
+	        // A
+	        case 65:
+	        	_keyPressed[2] = true;	       
+	            break;
+	        // D
+	        case 68:
+	        	_keyPressed[3] = true;
+	            break;
+            // Q
+            case 81:
+            	_keyPressed[4] = true;
+            	break;
+        	// E
+        	case 69:
+        		_keyPressed[5] = true;
+	    }
+	}
+
+	//gedrückte Taste wird nicht mehr gedrückt
+	document.onkeyup = function(e){
+		switch(e.keyCode){
+			// W
+			case 87:
+				_keyPressed[0] = false;
+				break;
+			// S
+			case 83:
+				_keyPressed[1] = false;
+				break;
+			// A
+			case 65:
+				_keyPressed[2] = false;
+				break;
+			// D
+			case 68:
+				_keyPressed[3] = false;
+				break;
+            // Q
+            case 81:
+            	_keyPressed[4] = false;
+            	break;
+        	// E
+        	case 69:
+        		_keyPressed[5] = false;
+        		break;
+		}
+	}
+
+	// Setzt das Feld _mousedown auf true 
+	document.onmousedown = function(e){
+		++_mouseDown;
+	}
+
+	// Setzt das Feld _mousedown wieder auf false
+	document.onmouseup = function(e){
+		--_mouseDown;
+	}
+
+	// Bewegt die Kamera auf der x-Ebene, wenn _mouseDown true ist.
+	document.onmousemove = function (e){
+		// Gibt den Winkel an, um den rotiert werden soll
+		var xzRotationsWinkel = 0.5;
+		var yRotationsWinkel = 2;
+
+		if(_mouseDown){
+		    if (e.screenX > xPosition ){
+				rotateY(toRadians(yRotationsWinkel));
+                _kameraWinkel+= yRotationsWinkel;
+		    }
+		    if (e.screenX < xPosition){
+		       	rotateY(toRadians(-yRotationsWinkel));
+                _kameraWinkel-= yRotationsWinkel;
+		    }
+		    // Rotation um x-Achse
+		    if(e.screenY > yPosition){
+		    	//console.log(e.screenY);
+		    	rotateXZ(toRadians(xzRotationsWinkel));
+		    }
+		    if(e.screenY < yPosition){
+		    	//console.log(e.screenY);
+		    	rotateXZ(toRadians(-xzRotationsWinkel));
+		    }
+    	}
+	    xPosition = e.screenX;
+	    yPosition = e.screenY;
+    }	
+}
+
+
+// Auskomentierte Funktionen
+
+
+/*// Specify position and color of the vertices	
+									 
+	positions = new Float32Array([  
+		// Front
+		-0.5, -0.5,  0.5,
+	     0.5, -0.5,  0.5,
+	     0.5,  0.5,  0.5,
+			
+		 0.5,  0.5,  0.5,
+		-0.5,  0.5,  0.5,
+		-0.5, -0.5,  0.5,
+			
+		 // Right
+		 0.5,  0.5,  0.5,
+		 0.5, -0.5,  0.5,
+		 0.5, -0.5, -0.5,
+			
+		 0.5, -0.5, -0.5,
+		 0.5,  0.5, -0.5,
+		 0.5,  0.5,  0.5,
+			
+		 // Back
+		-0.5, -0.5, -0.5,
+		 0.5, -0.5, -0.5,
+		 0.5,  0.5, -0.5,
+			
+		 0.5,  0.5, -0.5,
+		-0.5,  0.5, -0.5,
+		-0.5, -0.5, -0.5,
+			
+		 // Left
+		-0.5,  0.5,  0.5,
+		-0.5, -0.5,  0.5,
+		-0.5, -0.5, -0.5,
+			
+		-0.5, -0.5, -0.5,
+		-0.5,  0.5, -0.5,
+		-0.5,  0.5,  0.5,
+			
+		 // Bottom
+		-0.5, -0.5,  0.5,
+		 0.5, -0.5,  0.5,
+		 0.5, -0.5, -0.5,
+			
+		 0.5, -0.5, -0.5,
+		-0.5, -0.5, -0.5,
+		-0.5, -0.5,  0.5,
+			
+		 // Top
+		-0.5,  0.5,  0.5,
+		 0.5,  0.5,  0.5,
+		 0.5,  0.5, -0.5,
+			
+		 0.5,  0.5, -0.5,
+		-0.5,  0.5, -0.5,
+		-0.5,  0.5,  0.5
+	]); 
+										
+									
+	colors = new Float32Array([
+		// Front
+	     0, 0, 1, 1,
+		0, 0, 1, 1,
+		0, 0, 1, 1,
+		0, 0, 1, 1,
+		0, 0, 1, 1,
+		0, 0, 1, 1,
+		
+		// Right
+		0, 1, 0, 1, 
+		0, 1, 0, 1,
+		0, 1, 0, 1,
+		0, 1, 0, 1,
+		0, 1, 0, 1,
+		0, 1, 0, 1,
+		
+		// Back
+		1, 0, 0, 1,
+		1, 0, 0, 1,
+		1, 0, 0, 1,
+		1, 0, 0, 1,
+		1, 0, 0, 1,
+		1, 0, 0, 1,
+		
+		// Left
+		1, 1, 0, 1, 
+		1, 1, 0, 1,
+		1, 1, 0, 1,
+		1, 1, 0, 1,
+		1, 1, 0, 1,
+		1, 1, 0, 1,
+		
+		// Bottom
+		1, 0, 1, 1, 
+		1, 0, 1, 1,
+		1, 0, 1, 1,
+		1, 0, 1, 1,
+		1, 0, 1, 1,
+		1, 0, 1, 1,
+		
+		// Top
+		0, 1, 1, 1, 
+		0, 1, 1, 1,
+		0, 1, 1, 1,
+		0, 1, 1, 1,
+		0, 1, 1, 1,
+		0, 1, 1, 1
+	]);
+    
+	// Aus den Mozilla-Docs: 
+  	var vertexNormals = new Float32Array([
+	    // vorne
+	     0.0,  0.0,  1.0,
+	     0.0,  0.0,  1.0,
+	     0.0,  0.0,  1.0,
+	     0.0,  0.0,  1.0,
+	     0.0,  0.0,  1.0,
+	     0.0,  0.0,  1.0,
+
+	     // rechts
+	     1.0,  0.0,  0.0,
+	     1.0,  0.0,  0.0,
+	     1.0,  0.0,  0.0,
+	     1.0,  0.0,  0.0,
+	     1.0,  0.0,  0.0,
+	     1.0,  0.0,  0.0,
+	    
+	    // hinten
+	     0.0,  0.0, -1.0,
+	     0.0,  0.0, -1.0,
+	     0.0,  0.0, -1.0,
+	     0.0,  0.0, -1.0,
+	     0.0,  0.0, -1.0,
+	     0.0,  0.0, -1.0,
+	    
+		// links
+	    -1.0,  0.0,  0.0,
+	    -1.0,  0.0,  0.0,
+	    -1.0,  0.0,  0.0,
+	    -1.0,  0.0,  0.0,
+	    -1.0,  0.0,  0.0,
+	    -1.0,  0.0,  0.0,
+
+	    // unten
+	     0.0, -1.0,  0.0,
+	     0.0, -1.0,  0.0,
+	     0.0, -1.0,  0.0,
+	     0.0, -1.0,  0.0,
+	     0.0, -1.0,  0.0,
+	     0.0, -1.0,  0.0,
+
+		// oben
+	     0.0,  1.0,  0.0,
+	     0.0,  1.0,  0.0,
+	     0.0,  1.0,  0.0,
+	     0.0,  1.0,  0.0,
+	     0.0,  1.0,  0.0,
+	     0.0,  1.0,  0.0       
+  	]);*/
+
+ /* // Load positions into the GPU and associate shader variables
+	positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+	var vPosition = gl.getAttribLocation(program, "vPosition");
+	gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vPosition);
+
+	// Load colors into the GPU and associate shader variables
+	colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+	
+	var vColor = gl.getAttribLocation(program, "vColor");
+	gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vColor);
+
+	// Lade die Normalen in den Buffer und weise sie dem
+	// Attribut zu
+	cubeVerticesNormalBuffer = gl.createBuffer();
+  	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesNormalBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, vertexNormals, gl.STATIC_DRAW);
+
+	var vNormal = gl.getAttribLocation(program, "vNormal");
+    gl.vertexAttribPointer(vNormal, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vNormal);
+*/
+
+/*
+	// Set model matrix für die Objekte
+	cube = new Float32Array([1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							0.6, 0, 0, 1]);
+    
+    cube2 = new Float32Array([1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							-0.6, 0, 0, 1]);
+    
+    boden = new Float32Array([1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							0, -1, 0, 1]);
+    
+    // macht aus einem Cube den Boden via scale
+    boden = mat4.scale(boden, boden, vec3.fromValues(3.0, 0, 3.0));
+	
+	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
+*/
+
+// var earthTexture;
+// var earthImage;
+  	/*
+  	//Definition der Textur
+  	earthTexture = gl.createTexture();
+  	earthImage = new Image();
+  	earthImage.onload = function(){
+  		handleTexture(earthTexture, earthImage);
+  	};
+  	earthImage.src = "earth.jpg";
+  	
+
+	// Läd ein Bild auf eine Textur
+	function handleTexture(texture, image){
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+		gl.generateMipmap(gl.TEXTURE_2D);
+	}
+
+  	// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+
+  	var texCoords = new Float32Array([
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,
+  		0,0,
+  		0,1,
+  		1,1,
+  		1,1,
+  		1,0,
+  		0,0,]);
+  
+  
+
+
+    // Lade Texturen 
+    texBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+
+    var vTexCoords = gl.getAttribLocation(program, "vTexCoords");
+    gl.vertexAttribPointer(vTexCoords, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vTexCoords);
+
+    // Verlinkung mit Shadervariablen
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, earthTexture);
+    var loc = gl.getUniformLocation(program, "map");
+    gl.uniform1i(loc, 0);
+	*/
