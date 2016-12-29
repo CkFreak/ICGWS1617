@@ -30,15 +30,16 @@
 			// Texturekram aus der Übung
 			//attribute vec2 vTexCoords;
 			//varying vec2 fTexCoords;
-			
+			varying vec4 lichtpos;
 			void main()
 			{
 				gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
 				//fTexCoords = vTexCoords; 
 				
+                lichtpos = vec4(5, 0, -2, 0);
 				fColor = vColor;
 				transNormal = normTransMatrix * vNormal;
-                fPosition = vPosition;
+                fPosition = modelMatrix * vPosition;
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
@@ -56,12 +57,12 @@
 			uniform vec3 u_reverseLightDirection;
 			//varying vec2 fTexCoords;
 			//uniform sampler2D map;
+            varying vec4 lichtpos;
 			void main()
 			{
                 vec4 ka = fColor;
 				vec4 kd = fColor;
 				vec4 ks = fColor;
-                vec4 lichtpos = vec4(0,0,0,0);
             
                 vec4 l = normalize(lichtpos - fPosition);
 				vec4 n = normalize(transNormal - fPosition);
