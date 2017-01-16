@@ -159,10 +159,14 @@ function render()
 		gl.uniformMatrix4fv(modelMatrixLoc, false, object.modelMatrix);
 		gl.uniform4fv(colorLoc, object.color);
         
-        // Berechnet die transponierte und invertierte Normalentransformationsmatrix!
-        mat4.multiply(normTransMatrix, projectionMatrix, viewMatrix);
-        mat4.multiply(normTransMatrix, object.modelMatrix, normTransMatrix);
-        mat4.transpose(normTransMatrix, normTransMatrix);
+        //berechnet mvMatrix
+        var mvMatrix = mat4.create();
+        mat4.multiply(mvMatrix, viewMatrix, mvMatrix);
+        var mvMatrixLoc = gl.getUniformLocation(program, "mvMatrix");
+        mat4.transpose(mvMatrix, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixLoc, false, mvMatrix);
+        
+        normTransMatrix = mvMatrix;
         mat4.invert(normTransMatrix, normTransMatrix);
         gl.uniformMatrix4fv(normTransMatrixLoc, false, normTransMatrix);
         

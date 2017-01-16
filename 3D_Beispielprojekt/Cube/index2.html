@@ -12,6 +12,7 @@
 			uniform mat4 modelMatrix;
 			uniform mat4 viewMatrix;
 			uniform mat4 projectionMatrix;
+            uniform mat4 mvMatrix;
             
 			// Transponierte, invertierte Einheitsmatrix
 			uniform mat4 normTransMatrix;
@@ -27,6 +28,7 @@
 			varying vec2 fTexCoords;
             varying vec3 vTangentLightDir;
             varying vec3 vTangentEyeDir;
+            varying vec4 vLichtpos;
             
             
             //varying vec3 lichtpos;
@@ -35,6 +37,8 @@
 			{
 				gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
 				fTexCoords = vTexCoords; 
+                fPosition = vPosition;
+                vec4 v = modelMatrix * vPosition;
 
                 //siehe in Übungsfolien
                 vec3 tangent;
@@ -58,10 +62,10 @@
                 t.x, b.x, n.x,
                 t.y, b.y, n.y,
                 t.z, b.z, n.z);
-                
-                vec3 v = (modelMatrix * vNormal).xyz;
-                vec3 lightDirection = vec3(2, 0, -5) - v;
-                vec3 eyeDirection = -v;
+                vec4 lightpos = vec4(20, 5, -4, 1);
+                vLichtpos = lightpos;
+                vec3 lightDirection = lightpos.xyz - v.xyz;
+                vec3 eyeDirection = -v.xyz;
                
                 // Matrix Transformation 
                 vTangentLightDir = lightDirection * tbnMatrix;
@@ -79,6 +83,9 @@
             vec4 ia = vec4(0.3,0.3,0.3,1);
 			vec4 id = vec4(0.5,0.5,0.5,1);
 			vec4 is = vec4(0.8,0.8,0.8,1);
+            vec4 ka = vec4(0.5, 0.5, 0.5, 1);
+            vec4 kd = vec4 (0.7, 0.7, 0.7, 1);
+            vec4 ks = vec4 (0.8, 0.8, 0.8, 1);
             
             const float c1 = 1.0;
 			const float c2 = 0.0005;
@@ -91,6 +98,7 @@
             // Quelle: http://voxelent.com/html/beginners-guide/chapter_10/ch10_NormalMap.html
             varying vec3 vTangentLightDir;
             varying vec3 vTangentEyeDir;
+            varying vec4 vLichtpos;
             
             //varying vec4 lichtpos;
 			uniform sampler2D map;
@@ -103,7 +111,7 @@
                 
                 
                 vec3 lightDirection = normalize(vTangentLightDir);
-                float lambertTerm = max(dot(normal, lightDirection), 0.0);
+                float lambertTerm = max(dot(normal, lightDirection), 0.2);
                 
                 vec3 eyeDirection = normalize(vTangentEyeDir);
                 vec3 reflectDir = reflect(-lightDirection, normal);
@@ -112,12 +120,8 @@
                 vec4 ka = vec4(0.5, 0.5, 0.5, 1);
 				vec4 kd = vec4 (0.7, 0.7, 0.7, 1);
 				vec4 ks = vec4 (0.8, 0.8, 0.8, 1);
-                vec4 lichtpos = vec4(2, 0, -5, 0);
+                vec4 lichtpos = vLichtpos;
                 
-                //vec4 l = normalize(lichtpos - fPosition);
-				//vec4 n = normalize(transNormal - fPosition);
-				//vec4 r = normalize(reflect(l,n));
-				//vec4 v = normalize(vec4(0,0,0,0) - fPosition);
                 float x = 5.0;
                 
                 vec4 f_ambient = ia * ka;
@@ -127,7 +131,7 @@
                
                 
                 // distance between light source and vertex
-				float distance = length(lichtpos - fPosition);
+				float distance = length(vLichtpos - fPosition);
 				// distance attenuation
 				float fAtt = min(1.0 / (c1 + c2 * distance + c3 * pow(distance, 2.0)), 1.0);
 				
