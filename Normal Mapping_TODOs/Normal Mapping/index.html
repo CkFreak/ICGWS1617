@@ -1,0 +1,158 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Normal Mapping</title>
+		
+		<script id="vertex-shader" type="x-shader/x-vertex">
+			attribute vec4 vPosition;
+			
+			uniform mat4 modelMatrix;
+			uniform mat4 projectionMatrix;
+			uniform mat4 viewMatrix;
+			
+			void main()
+			{
+				gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
+			}
+		</script>
+		<script id="fragment-shader" type="x-shader/x-fragment">
+			precision mediump float;
+			
+			uniform vec4 objectColor;
+			
+			void main()
+			{					
+				gl_FragColor = objectColor;
+			}
+		</script>
+		
+		<script id="vertex-shader-lighting" type="x-shader/x-vertex">
+			attribute vec4 vPosition;
+			attribute vec4 vNormal;
+            attribute vec2 vTexCoord;
+			
+			// position of the light in world coordinates
+			uniform vec3 lightPosition;
+			
+			// transformation matrices
+			uniform mat4 modelMatrix;
+			uniform mat4 projectionMatrix;
+			uniform mat4 viewMatrix;
+			
+			varying vec4 position;
+			varying vec4 lightPos;
+			varying vec4 fNormal;
+
+            varying vec2 fTexCoord;
+			
+			void main()
+			{
+				lightPos = viewMatrix * vec4(lightPosition, 1);
+				fNormal = vNormal;
+				
+				mat4 modelViewMatrix = viewMatrix * modelMatrix;
+				position = modelViewMatrix * vPosition;
+
+                // Pass tex coords to fragment shader
+                fTexCoord = vTexCoord;
+				
+				gl_Position = projectionMatrix * position;
+			}
+		</script>
+		<script id="fragment-shader-lighting" type="x-shader/x-fragment">
+			precision mediump float;
+			
+			// ambient intensity
+			uniform vec4 Ia;
+			
+			// diffuse and specular intensities of the light source
+			uniform vec4 Id;
+			uniform vec4 Is;
+			
+			// ambient, diffuse and specular reflection factors (object specific)
+			uniform vec4 ka;
+			uniform vec4 kd;
+			uniform vec4 ks;
+
+            // pre-computed normal matrix
+            uniform mat4 normalMatrix;
+
+            uniform sampler2D diffuseMap;
+            // TODO 2: Füge Normal Map als uniforme Variable hinzu.
+            uniform sampler2D normalMap;
+            
+			
+			// constant, linear and quadratic attenuation factors
+			const float d1 = 1.0;
+			const float d2 = 0.0005;
+			const float d3 = 0.000003;
+			
+			// specular exponent
+			const float exp = 5.0;
+			
+			varying vec4 position;
+			varying vec4 lightPos;
+			varying vec4 fNormal;
+
+            varying vec2 fTexCoord;
+			
+			void main()
+			{	
+                // TODO	4:Berechne Normale, Tangente und Binormale im Kameraraum (der Code findet sich in den Übungsfolien vom 22.12.).
+                vec3 tangent;
+                vec3 c1 = cross(fNormal.xyz, vec3(0.0, 0.0, 1.0));
+                vec3 c2 = cross(fNormal.xyz, vec3(0.0, 1.0, 0.0));
+                if(length(c1) > length(c2)){
+            		tangent = normalize(c1);
+                } else {
+                	tangent = normalize(c2);
+                }
+                vec3 n = normalize(normalMatrix * fNormal).xyz;
+                vec3 t = normalize(normalMatrix * vec4(tangent, 1.0)).xyz;
+                vec3 b = cross(n, t);
+                // TODO 5: Stelle TBN-Matrix zur Transformation vom Kamera- in den Tangentenraum auf.
+                //mat3 tbn = mat3(t.x, t.y, t.z, b.x, b.y, b.z, n.x, n.y, n.z);
+                mat3 tbn = mat3(t.xyz, b.xyz, n.xyz);
+
+				// light direction
+				vec3 L = normalize((lightPos - position).xyz);
+				// normal
+                // TODO 6: Lese Normale aus Normal Map aus, verschiebe ihren Wertebereich und transformiere sie anschließend mit der TBN-Matrix in den Tangentenraum.  
+				vec3 x = normalize(((
+					texture2D(normalMap, fTexCoord).xyz * 2.0) - 1.0) * tbn);
+
+				vec3 N = normalize((normalMatrix * fNormal).xyz);               
+				
+				// view direction
+				vec3 V = normalize((-position).xyz);
+				// reflection direction
+				vec3 R = reflect(-L, x);	
+					
+				// distance between light source and vertex
+				float distance = length(lightPos - position);
+				// distance attenuation
+				float fAtt = min(1.0 / (d1 + d2 * distance + d3 * pow(distance, 2.0)), 1.0);
+				
+                vec4 diffuseColor = texture2D(diffuseMap, vec2(fTexCoord.s, fTexCoord.t));
+                gl_FragColor = Ia * ka + fAtt * (Id * diffuseColor * max(dot(N, L), 0.0) + Is * ks * pow(max(0.0, dot(R, V)), exp));
+            }
+		</script>
+
+		<script type="text/javascript" src="../Common/webgl-utils.js">
+		</script>
+		<script type="text/javascript" src="../Common/initShaders.js">
+		</script>
+		<script type="text/javascript" src="../Common/gl-matrix.js">
+		</script>
+		<script type="text/javascript" src="normalMapping.js">
+		</script>
+	</head>
+	<body>
+
+		<canvas id="gl-canvas" width="1200" height="1000">
+			If you see this, your browser doesn't support WebGL.
+		</canvas>
+		
+	</body>
+</html>
