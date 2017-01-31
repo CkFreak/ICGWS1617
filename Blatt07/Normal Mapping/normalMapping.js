@@ -14,6 +14,16 @@ var rotationAngleX = 0;
 var objects = [];
 var sandTexture;
 
+var timer = setInterval(timeFunction, 50);
+
+var tick = 0.0;
+
+function timeFunction(){
+	tick += 0.1;
+	tick = tick % 20.0;
+};
+
+
 var RenderObject = function(transform, color, shader, buffer, bufferLength)
 {
 	this.transform = transform;
@@ -222,14 +232,56 @@ window.onload = function init()
 							0.0, 0.0
 	]);
 										
-	var waterVertices = new Float32Array([1, 0, 1,
-										  1, 0, -1,
-										  -1, 0, -1,
-										  
-										  -1, 0, -1,
-										  -1, 0, 1,
-										  1, 0, 1
-										 ]);
+	
+    var waterVertices = waterFunction(0.01);
+
+
+	// Ursprüngliches Wasser	
+/*
+		1, 0, 1,
+		1, 0, -1,
+		-1, 0, -1,
+		  
+		-1, 0, -1,
+		-1, 0, 1,
+		1, 0, 1
+*/
+	//Simple, größere Plane
+/*
+		1, 0,-1,
+		0, 0,-1,
+		1, 0, 0,
+
+		1, 0, 0,
+		0, 0,-1,
+		0, 0, 0,
+
+		0, 0, 0,
+		0, 0,-1,
+		-1,0,-1,
+
+		0, 0, 0,
+		-1, 0,-1,
+		-1, 0, 0,
+
+		1, 0, 1,
+		1, 0, 0,
+		0, 0, 0,
+
+		1, 0, 1,
+		0, 0, 0,
+		0, 0, 1,
+
+		0, 0, 1,
+		0, 0, 0,
+		-1, 0, 0,
+
+		0, 0, 1,
+		-1, 0, 0,
+		-1, 0, 1
+*/
+		
+	
 										 
 											// Front
 	var palmTreeVertices = new Float32Array([		-0.5, -0.5, 0.5,
@@ -300,6 +352,7 @@ window.onload = function init()
 
 	var defaultProgram = initShaders(gl, "vertex-shader", "fragment-shader");
 	var vertexLightingProgram = initShaders(gl, "vertex-shader-lighting", "fragment-shader-lighting");
+	var wasser = initShaders(gl, "water-vertex-shader", "water-fragment-shader");
 	
 	///// ISLAND OBJECT /////
 	
@@ -337,9 +390,9 @@ window.onload = function init()
 	gl.bufferData(gl.ARRAY_BUFFER, waterVertices, gl.STATIC_DRAW);
 	
 	// Create object
-	var water = new RenderObject(mat4.create(), vec4.fromValues(0,0,1,1), defaultProgram, vertexBufferWater, waterVertices.length/3);
+	var water = new RenderObject(mat4.create(), vec4.fromValues(0,0,1,1), wasser, vertexBufferWater, waterVertices.length/3);
 	mat4.translate(water.transform, water.transform, vec3.fromValues(0, 0, 0));
-	mat4.scale(water.transform, water.transform, vec3.fromValues(100, 1, 100));
+	mat4.scale(water.transform, water.transform, vec3.fromValues(50, 1, 50));
 	
 	// Push object on the stack
 	objects.push(water);
@@ -415,6 +468,7 @@ window.onload = function init()
 function render()
 {	
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
 	
 	objects.forEach(function(object) 
 	{
@@ -495,6 +549,11 @@ function render()
 		gl.uniformMatrix4fv(projectionMatrixLoc, false, projectionMatrix);
 		gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
 		gl.uniformMatrix4fv(modelMatrixLoc, false, object.transform);
+
+		// Zeitabhängig Variable an den Shader übergeben
+		var tickloc = gl.getUniformLocation(object.shader, "tick");
+		gl.uniform1f(tickloc, tick);
+
 
 		// Draw
 		gl.drawArrays(gl.TRIANGLES, 0, object.bufferLength);
@@ -586,3 +645,22 @@ function handleMouseMove(event)
 	mat4.lookAt(viewMatrix, eye, target, up);
 }
 
+function waterFunction(x){
+
+	var waterArray = [];
+
+    for(var i = -1.0; i < 1.0; i += x){
+		for(var j = -1.0; j < 1.0; j += x){
+			waterArray.push(
+				i, 0.0, j,
+				i + x, 0.0, j + x,
+				i + x, 0.0, j,
+
+				i, 0.0, j,
+				i, 0.0, j + x,
+				i + x, 0.0, j + x)
+		}
+
+    }
+    return new Float32Array(waterArray);
+}

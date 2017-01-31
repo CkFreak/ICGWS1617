@@ -16,6 +16,7 @@
 				gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
 			}
 		</script>
+
 		<script id="fragment-shader" type="x-shader/x-fragment">
 			precision mediump float;
 			
@@ -27,6 +28,44 @@
 			}
 		</script>
 		
+		<script id="water-vertex-shader" type="x-shader/x-vertex">
+			attribute vec4 vPosition;
+			
+			uniform mat4 modelMatrix;
+			uniform mat4 projectionMatrix;
+			uniform mat4 viewMatrix;
+
+			uniform float tick;
+
+			varying float factor;
+			
+			void main()
+			{
+				vec4 schwingung = vPosition;
+
+				schwingung.y = (sin(tick * schwingung.x) + sin(tick * schwingung.z)) / 2.0;
+
+				factor = schwingung.y * 0.5;
+				
+				gl_Position = projectionMatrix * viewMatrix * modelMatrix * schwingung;
+			}
+		</script>
+
+		<script id="water-fragment-shader" type="x-shader/x-fragment">
+			precision mediump float;
+			
+			uniform vec4 objectColor;
+
+			varying float factor;
+			
+			void main()
+			{					
+				gl_FragColor = objectColor - factor;
+			}
+		</script>
+
+
+
 		<script id="vertex-shader-lighting" type="x-shader/x-vertex">
 			attribute vec4 vPosition;
 			attribute vec4 vNormal;
